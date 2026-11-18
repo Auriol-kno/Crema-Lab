@@ -101,3 +101,7 @@
 .alert-settings #alTest{justify-content:center;background:var(--surface-2);font-size:14px!important}
 .settings-links button{min-height:52px;font-size:14px}
 .alert-settings #alTest{display:flex!important}
+
+/* Child labels must inherit the selected grinder color instead of legacy burgundy. */
+[data-theme="palarnia"] :is(#gGrinders button[aria-pressed="true"],#gsel button[aria-checked="true"]){background:#17494c;color:#fffaf0;border-color:#17494c!important}
+[data-theme="palarnia"] :is(#gGrinders,#gsel) button :is(b,small){color:inherit!important;opacity:1}

@@ -51,10 +51,10 @@ export function App() {
     <div className="home-note"><Icon name="coffee"/><p>Twój przepis, Twoje tempo.<br/><span>Ustawienia i historia zostają na tym urządzeniu.</span></p></div>
    </section>
    <section hidden={screen!=='timer'} aria-label="Parzenie" className="screen">
+    <details className="details-card visual-details"><summary>Podgląd ekstrakcji <span>+</span></summary><p className="subtle">Wizualizacja jest symulacją, nie pomiarem z urządzenia.</p><BrewingPanel html={visual}/></details>
     <BrewingPanel html={timer}/>
     <button className="wide-link" onClick={()=>engine.current?.finish()}>Zakończ i oceń kawę <span>→</span></button>
     <details className="details-card"><summary>Etapy parzenia <span>+</span></summary><BrewingPanel html={steps}/></details>
-    <details className="details-card visual-details"><summary>Podgląd ekstrakcji <span>+</span></summary><p className="subtle">Wizualizacja jest symulacją, nie pomiarem z urządzenia.</p><BrewingPanel html={visual}/></details>
    </section>
    <section hidden={screen!=='equipment'} aria-label="Sprzęt i parametry" className="screen">
     <div className="segment" role="group" aria-label="Wybór sprzętu">{([{id:'grinder',label:'Młynek'},{id:'anna',label:'Lelit Anna'},{id:'service',label:'Serwis'}] as const).map(t=><button key={t.id} aria-pressed={equipment===t.id} onClick={()=>setEquipment(t.id)}>{t.label}</button>)}</div>
