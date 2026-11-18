@@ -11,6 +11,10 @@ import rating from './screens/rating.html?raw';
 import history from './screens/history.html?raw';
 import overlays from './screens/overlays.html?raw';
 import { Backup } from './Backup';
+import espressoPhoto from './espresso.webp';
+const timerSplit=timer.indexOf('<div class="actions">');
+const timerReadout=timer.slice(0,timerSplit);
+const timerControls=timer.slice(timerSplit);
 
 type Screen = 'home' | 'timer' | 'equipment' | 'history' | 'rating';
 type Equipment = 'grinder' | 'anna' | 'service';
@@ -37,9 +41,9 @@ export function App() {
   const change=()=>setScreen(initialScreen());window.addEventListener('hashchange',change);
   return ()=>window.removeEventListener('hashchange',change);
  },[navigate]);
- return <div className="app-shell">
+ return <div className="app-shell" data-screen={screen} data-running={status.running}>
   <header className="app-header">
-   <button className="brand-button" onClick={()=>navigate('home')} aria-label="Crema Lab — ekran główny"><span className="brand-mark">c.</span><span>Crema <b>Lab</b></span></button>
+   <button className="brand-button" onClick={()=>navigate('home')} aria-label="Crema Lab — ekran główny"><svg className="bean-logo" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="beanCopper" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f0c39f"/><stop offset=".5" stopColor="#c18660"/><stop offset="1" stopColor="#754a32"/></linearGradient></defs><ellipse cx="20" cy="20" rx="12" ry="17" transform="rotate(38 20 20)" fill="url(#beanCopper)"/><path d="M11 33C25 23 16 15 29 7" stroke="var(--bg)" strokeWidth="4" fill="none"/></svg><span>Crema <b>Lab</b></span></button>
    <span id="chip" hidden/>
    <button id="settingsBtn" className="settings-trigger" aria-label="Ustawienia" aria-haspopup="dialog"><Icon name="settings"/></button>
   </header>
@@ -51,7 +55,12 @@ export function App() {
     <div className="home-note"><Icon name="coffee"/><p>Twój przepis, Twoje tempo.<br/><span>Ustawienia i historia zostają na tym urządzeniu.</span></p></div>
    </section>
    <section hidden={screen!=='timer'} aria-label="Parzenie" className="screen">
-    <BrewingPanel html={timer}/>
+    <BrewingPanel html={timerReadout}/>
+    <div className="espresso-stage" hidden={status.method!=='Espresso'}>
+     <figure className="espresso-photo"><img src={espressoPhoto} alt="Ilustracja espresso spływającego z kolby do ceramicznej filiżanki" width="1536" height="1024" fetchPriority="high"/><figcaption>Ilustracja parzenia</figcaption></figure>
+     <div className="espresso-metrics"><div><span>Filiżanka <small>· szacunek</small></span><strong id="heroMass">≈ 0 g</strong></div><div><span>Ekstrakcja <small>· symulacja</small></span><strong id="heroExtraction">≈ 0%</strong></div></div>
+    </div>
+    <BrewingPanel html={timerControls}/>
     <button className="wide-link" onClick={()=>engine.current?.finish()}>Zakończ i oceń kawę <span>→</span></button>
     <details className="details-card"><summary>Etapy parzenia <span>+</span></summary><BrewingPanel html={steps}/></details>
     <details className="details-card visual-details"><summary>Podgląd ekstrakcji <span>+</span></summary><p className="subtle">Wizualizacja jest symulacją, nie pomiarem z urządzenia.</p><BrewingPanel html={visual}/></details>

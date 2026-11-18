@@ -406,6 +406,8 @@ function update(){
   if($('steps').dataset.v!==sh){$('steps').innerHTML=sh; $('steps').dataset.v=sh;}
   $('tip').textContent=d.tip;
   sceneUpdate(d);
+  $('heroMass').textContent=$('stV').textContent;
+  $('heroExtraction').textContent=$('stE').textContent;
   checkAlerts(d);
 }
 

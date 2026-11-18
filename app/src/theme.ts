@@ -1,9 +1,16 @@
-export const appThemes = { cafe:'#FAF1E5', bar:'#14100F', studio:'#101126' };
+export const appThemes = { cafe:'#FAF1E5', bar:'#171614', studio:'#101126' };
 export type Theme = keyof typeof appThemes;
 export const appThemeKey = 'cremalab.theme';
 export function applyAppTheme(value: string | null) {
- const theme: Theme = value && value in appThemes ? value as Theme : 'cafe';
+ const theme: Theme = value && Object.prototype.hasOwnProperty.call(appThemes,value) ? value as Theme : 'bar';
  document.documentElement.dataset.theme = theme;
  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', appThemes[theme]);
 }
-try { applyAppTheme(localStorage.getItem(appThemeKey)); } catch { applyAppTheme('cafe'); }
+// Apply the requested art direction once. Subsequent user theme choices persist.
+try {
+ if(localStorage.getItem('cremalab.copper-design')!=='1') {
+  localStorage.setItem(appThemeKey,'bar');
+  localStorage.setItem('cremalab.copper-design','1');
+ }
+ applyAppTheme(localStorage.getItem(appThemeKey));
+} catch { applyAppTheme('bar'); }
