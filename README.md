@@ -1,6 +1,6 @@
 # Crema Lab
 
-Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScript i Vite. Sześć metod parzenia, trzy motywy, prowadzenie krok po kroku i timer działający podczas nawigacji między ekranami.
+Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScript i Vite. Sześć metod parzenia, jedyny motyw Palarnia, prowadzenie krok po kroku i timer działający podczas nawigacji między ekranami.
 
 ## Ekrany
 
@@ -9,7 +9,7 @@ Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScrip
 - **Sprzęt:** osobne zakładki młynków, Lelit Anna i serwisu. K-Pro ma regulację pojedynczym kliknięciem. William zachowuje kalibrację g/s i czas, także gdy inne metody korzystają z K-Pro. Anna zachowuje PID, licznik rozgrzewania i instrukcje obsługi mleka/kotła.
 - **Historia:** pięć ostatnich ocenionych kaw i ponowne użycie ustawień. Eksport/import kopii JSON przenosi dane między urządzeniami.
 
-Ustawienia → Motyw aplikacji: Palarnia (domyślny, krem i bordo), Jasna kawiarnia, Espresso Bar (grafit i szczotkowana miedź), Studio ekstrakcji. Zmiana motywu i ekranu nie resetuje timera.
+Jedyny motyw to Palarnia (krem i bordo). Ustawienia zawierają przełączniki dźwięku, głosu i koloru alertów, dostępne wyłącznie w tym oknie. Wybór młynka wyróżnia kolor morski, a wybór napoju — ochra; wybór metody pozostaje bordowy. Wszystkie przyciski i panele prowadzenia mają spójne narożniki.
 
 ## Uruchomienie i rozwój
 
@@ -49,7 +49,7 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm test`. Test uruchamia własny serwer preview i wymaga wcześniejszego builda. Obejmuje sześć metod, prowadzenie, timer podczas nawigacji, motywy, K-Pro, Williama, PID/rozgrzewanie/mleko/serwis, ocenę i historię, eksport/import oraz zachowanie istniejących danych. Układ sprawdzany przy 320, 375, 390 i 430 px w czterech motywach. Zrzuty trafiają do `test-results/`.
+Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm test`. Test uruchamia własny serwer preview i wymaga wcześniejszego builda. Obejmuje sześć metod, prowadzenie, timer podczas nawigacji, alerty w ustawieniach, K-Pro, Williama, PID/rozgrzewanie/mleko/serwis, ocenę i historię, eksport/import oraz zachowanie istniejących danych. Układ sprawdzany przy 320, 375, 390 i 430 px w motywie Palarnia. Zrzuty trafiają do `test-results/`.
 
 Pozostaje test na fizycznym iPhonie w Safari, w tym dźwięk/głos, blokada ekranu oraz powrót po zminimalizowaniu aplikacji. Aplikacja nie łączy się z urządzeniami kawowymi i nie potwierdza ich rzeczywistej temperatury ani ciśnienia.
 
