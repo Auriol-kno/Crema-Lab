@@ -9,7 +9,7 @@ Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScrip
 - **Sprzęt:** osobne zakładki młynków, Lelit Anna i serwisu. K-Pro ma regulację pojedynczym kliknięciem. William zachowuje kalibrację g/s i czas, także gdy inne metody korzystają z K-Pro. Anna zachowuje PID, licznik rozgrzewania i instrukcje obsługi mleka/kotła.
 - **Historia:** pięć ostatnich ocenionych kaw i ponowne użycie ustawień. Eksport/import kopii JSON przenosi dane między urządzeniami.
 
-Ustawienia → Motyw aplikacji: Jasna kawiarnia (domyślny), Espresso Bar, Studio ekstrakcji. Zmiana motywu i ekranu nie resetuje timera.
+Ustawienia → Motyw aplikacji: Jasna kawiarnia (domyślny), Espresso Bar (grafit i szczotkowana miedź), Studio ekstrakcji. Nowa stylistyka włącza Espresso Bar raz przy pierwszym uruchomieniu aktualizacji; późniejsze wybory motywu zostają zapamiętane. Nie zmienia ustawień parzenia ani historii. Zmiana motywu i ekranu nie resetuje timera.
 
 ## Uruchomienie i rozwój
 
@@ -52,3 +52,5 @@ npm test
 Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm test`. Test uruchamia własny serwer preview i wymaga wcześniejszego builda. Obejmuje sześć metod, prowadzenie, timer podczas nawigacji, motywy, K-Pro, Williama, PID/rozgrzewanie/mleko/serwis, ocenę i historię, eksport/import oraz zachowanie istniejących danych. Układ sprawdzany przy 320, 375, 390 i 430 px w trzech motywach. Zrzuty trafiają do `test-results/`.
 
 Pozostaje test na fizycznym iPhonie w Safari, w tym dźwięk/głos, blokada ekranu oraz powrót po zminimalizowaniu aplikacji. Aplikacja nie łączy się z urządzeniami kawowymi i nie potwierdza ich rzeczywistej temperatury ani ciśnienia.
+
+Fotografia na ekranie espresso jest wygenerowaną ilustracją, nie transmisją z ekspresu. Widoczne masa i ekstrakcja są wartościami szacunkowymi z symulacji; inne metody zachowują własne wskaźniki i wizualizacje.
