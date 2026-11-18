@@ -1,0 +1,75 @@
+/* Palarnia — warm paper, oxblood ink, bold type, purposeful rules. */
+:root[data-theme="palarnia"]{
+ color-scheme:light;--bg:#f5eee2;--surface:#faf5ec;--surface-2:#eee3d3;--track:#dfd2c0;--line:#bea89a;
+ --ink:#1d1715;--soft:#4c3730;--muted:#725d50;--dim:#796456;--accent:#771b2d;--on-accent:#fff9ee;
+ --good:#597044;--bad:#9d2725;--cool:#365e76;--wash:#771b2d0d;--stop:#771b2d;--on-stop:#fff9ee;
+ --body:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--title:var(--body);--timer:var(--body);
+ --scene-top:#583d27;--scene-bottom:#271c16;--tint-near:#f6e4b8;--tint-stop:#e0ead5;--tint-over:#f8d8ce;--tint-step:#efe3d2;
+ --r-card:3px;--r-ctl:3px;
+}
+[data-theme="palarnia"] .app-shell,[data-theme="palarnia"] body{background:var(--bg)}
+[data-theme="palarnia"] .app-header{border-color:var(--accent);margin:0 18px;padding-inline:0;min-height:72px}
+[data-theme="palarnia"] .brand-button{font-size:24px;letter-spacing:-1px;color:var(--accent);font-weight:800}
+[data-theme="palarnia"] .brand-button b{font-weight:800}
+[data-theme="palarnia"] .brand-mark{display:none}
+[data-theme="palarnia"] .settings-trigger{border:0;background:none;border-radius:0;color:var(--accent)}
+[data-theme="palarnia"] .screen-heading h1{font-weight:800;letter-spacing:-1px;font-size:28px}
+[data-theme="palarnia"] .overline{color:var(--accent);font-weight:750;letter-spacing:1.4px}
+[data-theme="palarnia"] .card,[data-theme="palarnia"] .recipe{border-radius:3px!important;box-shadow:none!important;background:transparent!important;border-color:var(--line)!important}
+[data-theme="palarnia"] .recipe h1{font-size:20px!important;font-weight:750!important;color:var(--ink)}
+.recipe .tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.recipe .tabs button{min-height:88px!important;font-size:14px!important;gap:7px}
+.recipe .tabs button svg{width:28px!important;height:28px!important}
+[data-theme="palarnia"] .recipe .tabs{background:none;border:0}
+[data-theme="palarnia"] .recipe .tabs button{border:1px solid var(--line)!important;border-radius:3px!important;background:transparent!important;color:var(--ink);box-shadow:none}
+[data-theme="palarnia"] .recipe .tabs button[aria-selected="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:var(--on-accent)!important;box-shadow:none}
+[data-theme="palarnia"] .presets{border-radius:0!important;background:none;border-block:1px solid var(--accent);padding-block:6px!important}
+.presets button{min-height:52px!important;font-size:14px!important}
+[data-theme="palarnia"] .presets button{border-radius:0!important}
+[data-theme="palarnia"] .tiles{border-color:var(--accent)!important}
+.guide-cta{min-height:64px!important;padding:12px!important}.guide-cta b{font-size:18px!important}.guide-cta small{font-size:12px!important}
+.timer-link{min-height:52px!important;font-size:16px!important}
+[data-theme="palarnia"] .guide-cta{background:var(--accent);color:var(--on-accent);border-color:var(--accent)!important;border-radius:3px!important}
+[data-theme="palarnia"] .guide-cta small,[data-theme="palarnia"] .guide-cta em{color:var(--on-accent)}
+.settings-trigger{width:52px;height:52px}
+.wide-link{min-height:56px;font-size:15px;padding:12px 14px}
+.bottom-nav button{min-height:60px;font-size:12px}.nav-icon{height:32px}.nav-icon svg{width:24px;height:24px}
+[data-theme="palarnia"] .bottom-nav{border-color:var(--accent);background:var(--bg)}
+[data-theme="palarnia"] .nav-icon{background:none!important;border-radius:0}
+[data-theme="palarnia"] .bottom-nav button{border-radius:0}
+[data-theme="palarnia"] .bottom-nav button[aria-current="page"]{box-shadow:inset 0 -3px var(--accent)}
+[data-theme="palarnia"] .wide-link,[data-theme="palarnia"] .details-card,[data-theme="palarnia"] .segment{border-radius:3px;background:transparent;box-shadow:none}
+[data-theme="palarnia"] .segment{border-block:1px solid var(--accent);padding:5px 0}
+.segment button{min-height:52px;font-size:14px}
+[data-theme="palarnia"] .segment button{border-radius:0}
+[data-theme="palarnia"] .segment button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:none}
+/* Open timer composition: all space goes to the count and the touch controls. */
+.screen[aria-label="Parzenie"] .brew{display:flex!important;flex-direction:column;align-items:stretch;min-height:0;border-radius:0!important;padding:0 0 18px!important;border:0!important;border-bottom:1px solid var(--line)!important;background:none!important;gap:0!important}
+.screen[aria-label="Parzenie"] .b-div,.screen[aria-label="Parzenie"] .b-right{display:none}
+.screen[aria-label="Parzenie"] .b-left{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.screen[aria-label="Parzenie"] .b-time{order:0;width:100%;white-space:nowrap;gap:7px;margin:2px 0 5px}
+.screen[aria-label="Parzenie"] .b-time b{font-family:var(--timer)!important;font-size:clamp(76px,23vw,110px)!important;line-height:1.05;letter-spacing:-5px;font-weight:800!important;font-variant-numeric:tabular-nums}
+.screen[aria-label="Parzenie"] .b-time small{font-size:24px!important;font-weight:500}
+.screen[aria-label="Parzenie"] .b-ph{order:1;font-size:19px!important;flex:1}
+.screen[aria-label="Parzenie"] .b-target{order:2;font-size:13px!important;white-space:nowrap}
+.screen[aria-label="Parzenie"] .brew-progress{order:3;width:100%;height:12px;margin-top:10px;background:var(--track);border-radius:2px;overflow:hidden}
+.screen[aria-label="Parzenie"] .brew-progress::before{background:var(--accent);border-radius:0}
+.screen[aria-label="Parzenie"] .actions{position:static;display:flex;flex-direction:column;background:none;gap:10px!important}
+.screen[aria-label="Parzenie"] .actions .btn.main{min-height:80px!important;height:80px!important;font-size:32px!important;font-weight:800;letter-spacing:.5px;box-shadow:none}
+.screen[aria-label="Parzenie"] .actions .btn.ghost{min-height:56px!important;height:56px!important;font-size:20px!important;font-weight:650}
+[data-theme="palarnia"] .btn.main,[data-theme="palarnia"] .btn.main.run{background:var(--accent)!important;color:var(--on-accent)!important;border:1px solid var(--accent)!important;border-radius:3px!important}
+[data-theme="palarnia"] .btn.ghost{border:1px solid var(--accent)!important;color:var(--accent);background:none!important;border-radius:3px!important}
+.screen[aria-label="Parzenie"] .alerts{flex-wrap:wrap;justify-content:flex-start!important;gap:8px!important}
+.screen[aria-label="Parzenie"] .alerts button{min-height:44px!important;font-size:13px!important;padding:0 12px!important}
+[data-theme="palarnia"] .alerts button{border-radius:3px!important;background:none}
+.details-card summary{min-height:40px;font-size:15px}
+.visual-details .gauge{display:block!important}.visual-details .gauge .t-main{display:none}
+[data-theme="palarnia"] .b-target{border:0;padding:0;color:var(--soft)}
+[data-theme="palarnia"] .screen-heading{padding-bottom:12px;border-bottom:1px solid var(--accent)}
+[data-theme="palarnia"] .home-note{display:none}
+[data-theme="palarnia"] .settings{border-radius:3px}
+.theme-option.palarnia{--swatch-bg:#f5eee2;--swatch-accent:#771b2d}
+.theme-option{min-height:64px}
+@media(max-width:360px){.recipe .tabs button{min-height:80px!important;font-size:13px!important}.screen[aria-label="Parzenie"] .b-time b{font-size:76px!important;letter-spacing:-4px}.screen[aria-label="Parzenie"] .b-time small{font-size:20px!important}.screen[aria-label="Parzenie"] .b-ph{font-size:17px!important}.screen[aria-label="Parzenie"] .b-target{font-size:12px!important}.screen-heading h1{font-size:24px!important}}
+
+.app-shell[data-screen="home"] .screen-heading{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

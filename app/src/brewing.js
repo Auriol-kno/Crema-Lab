@@ -357,6 +357,8 @@ function update(){
     $('bDot').style.background=idle?'var(--muted)':col==='var(--accent)'?'var(--good)':col;
     $('bTime').textContent=d.isE?(Math.floor(el*10)/10).toFixed(1).replace('.',','):mss(el); $('bTimeU').textContent=d.isE?'s':'min';
     $('brewProgress').style.setProperty('--progress',pct(el/d.w1));
+    $('brewProgress').setAttribute('aria-valuenow',String(Math.round(clamp(el/d.w1,0,1)*100)));
+    $('brewProgress').setAttribute('aria-valuetext',Math.round(clamp(el/d.w1,0,1)*100)+'% czasu docelowego');
     $('bTarget').textContent={espresso:'Cel '+d.w0+'–'+d.w1+' s',aeropress:'Prasowanie od '+mss(d.w0),v60:'Spływanie do '+mss(d.w1),french:'Tłok o '+mss(d.w0),turkish:'Zdejmij do '+mss(d.w1),moka:'Zdejmij ok. '+mss(d.w0)}[d.k];
     let gv,gmax,gb,lbl,val,unit;
     if(d.isE){gv=g.val; gmax=16; gb=[8,12]; lbl='Symulacja ciśnienia'; val=g.val.toFixed(1).replace('.',','); unit='bar';}
@@ -406,8 +408,6 @@ function update(){
   if($('steps').dataset.v!==sh){$('steps').innerHTML=sh; $('steps').dataset.v=sh;}
   $('tip').textContent=d.tip;
   sceneUpdate(d);
-  $('heroMass').textContent=$('stV').textContent;
-  $('heroExtraction').textContent=$('stE').textContent;
   checkAlerts(d);
 }
 
