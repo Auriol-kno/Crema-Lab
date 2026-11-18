@@ -5,7 +5,7 @@ function validData(raw: unknown): raw is Record<string,string|null> {
  if(!raw || typeof raw!=='object')return false;
  const values=raw as Record<string,unknown>;
  if(!keys.every(k=>values[k]===null || typeof values[k]==='string'))return false;
- if(values['cremalab.theme']!==null&&!['cafe','bar','studio'].includes(String(values['cremalab.theme'])))return false;
+ if(values['cremalab.theme']!==null&&!['palarnia','cafe','bar','studio'].includes(String(values['cremalab.theme'])))return false;
  try { for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
  // Imported history reaches the existing engine's HTML renderer: accept only
  // plain text and bounded numeric values, never markup or invalid ratings.
