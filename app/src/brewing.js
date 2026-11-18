@@ -1,5 +1,4 @@
 import { M, ORDER, DEF } from './recipes';
-import { applyAppTheme, appThemeKey } from './theme';
 
 // Existing brewing engine retained during the React migration. DOM is scoped to stable screen components.
 export function initBrewing(navigate, notify) {
@@ -655,7 +654,7 @@ document.querySelector('.alerts').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.dataset.al){S.alerts[b.dataset.al]=!S.alerts[b.dataset.al]; persist(); alertsUi(); ensureAudio();
     if(b.dataset.al==='voice'&&S.alerts.voice&&!window.speechSynthesis) toast('Ta przeglądarka nie obsługuje głosu');}
-  if(b.id==='alTest'){ensureAudio(); const d=model(); const ev=events(d).find(x=>x.k==='stop')||{k:'stop',main:'Zatrzymaj'}; fire(Object.assign({},ev,{sub:'TEST · '+(ev.sub||'')}));}
+  if(b.id==='alTest'){settingsDialog.close(); ensureAudio(); const d=model(); const ev=events(d).find(x=>x.k==='stop')||{k:'stop',main:'Zatrzymaj'}; fire(Object.assign({},ev,{sub:'TEST · '+(ev.sub||'')}));}
 });
 
 async function lock(){try{if(navigator.wakeLock) wl=await navigator.wakeLock.request('screen');}catch(e){}}
@@ -818,7 +817,7 @@ function guideSteps(){
     {id:'bed',t:d.isE?'Rozprowadź i ubij':'Wsyp kawę',h:()=>'<ol class="g-list">'+bedStep(d).map((x,i)=>'<li><b class="n">'+(i+1)+'</b><span>'+x+'</span></li>').join('')+'</ol>'},
     {id:'brew',t:'Parzenie',h:()=>'<div class="g-live"><small id="gPh">GOTOWY</small><b id="gT">0</b><span id="gNow"></span></div>'
        +'<button type="button" class="btn main" id="gRun" style="width:100%"></button>'
-       +'<p class="g-note">'+(S.alerts.sound||S.alerts.flash?'Dam znać '+[S.alerts.sound?'dźwiękiem':'',S.alerts.voice?'głosem':'',S.alerts.flash?'kolorem ekranu':''].filter(Boolean).join(', ')+' przy każdym kroku i gdy trzeba przerwać parzenie.':'Alerty są wyłączone. Włączysz je pod przyciskiem Start.')+' Wycisz tryb cichy w iPhonie, żeby słyszeć dźwięk.</p>'
+       +'<p class="g-note">'+(S.alerts.sound||S.alerts.voice||S.alerts.flash?'Dam znać '+[S.alerts.sound?'dźwiękiem':'',S.alerts.voice?'głosem':'',S.alerts.flash?'kolorem ekranu':''].filter(Boolean).join(', ')+' przy każdym kroku i gdy trzeba przerwać parzenie.':'Alerty są wyłączone. Włączysz je w Ustawieniach.')+' Wycisz tryb cichy w iPhonie, żeby słyszeć dźwięk.</p>'
        +'<ol class="g-list" id="gSteps"></ol>'},
     {id:'rate',t:'Oceń kawę',h:()=>'<div class="g-big"><small>CZAS PARZENIA</small><b>'+(el>0?(d.isE?num(r1(el)):mss(el)):'—')+'</b><span>'+(el>0?(d.isE?'sekund':'min:s'):'timer nie był użyty')+'</span></div>'
        +'<p style="margin:0">Spróbuj i oceń smak. Na podstawie oceny dostaniesz konkretne zmiany na następną kawę, także dla młynka.</p>'}
@@ -854,13 +853,8 @@ function openGuide(){GI=0; $('guide').hidden=false; document.body.style.overflow
 function closeGuide(){$('guide').hidden=true; document.body.style.overflow='';}
 const settingsDialog=$('settingsDialog');
 $('settingsBtn').addEventListener('click',()=>{
-  settingsDialog.querySelector('input[value="'+document.documentElement.dataset.theme+'"]').checked=true;
+  alertsUi();
   settingsDialog.showModal();
-});
-settingsDialog.addEventListener('change',e=>{
-  if(e.target.name!=='theme') return;
-  applyAppTheme(e.target.value);
-  try{localStorage.setItem(appThemeKey,e.target.value);}catch{}
 });
 settingsDialog.addEventListener('click',e=>{
   const target=e.target.closest('button[data-jump]');
