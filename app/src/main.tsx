@@ -6,6 +6,8 @@ import './palarnia.css';
 import './appearance.css';
 import './mode.css';
 import './polish.css';
+import './overrides.css';
+import './bar.css';
 import { App } from './App';
 createRoot(document.getElementById('root')!).render(<App />);
 // Ask the browser to keep history and calibration (Safari may otherwise clear site data).

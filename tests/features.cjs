@@ -19,7 +19,7 @@ let browser;
 
  // 1. Day / night / system: every theme gets a dark palette, system follows the phone.
  {const p=await open({colorScheme:'light'});
-  for(const theme of ['palarnia','sage','soft']){
+  for(const theme of ['palarnia','bar','soft']){
    await p.click('#settingsBtn');await p.selectOption('#appTheme',theme);await p.selectOption('#appMode','dark');await p.locator('#settingsDialog button[type=submit]').click();
    assert.equal(await p.evaluate(()=>document.documentElement.dataset.mode),'dark');
    assert(luminance(await bg(p))<.05,`${theme} night background is dark`);
