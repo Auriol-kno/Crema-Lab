@@ -1,5 +1,11 @@
 <section class="card" aria-labelledby="rateH" id="rateCard">
     <div class="card-head"><div class="eyebrow" id="rateH">OCENA NAPARU</div><span class="brewinfo" id="brewInfo"></span></div>
+    <div class="coffee-pick">
+      <div class="label">KAWA</div>
+      <div class="chips coffee-chips" id="coffeeChips"></div>
+      <div class="coffee-new"><input id="coffeeName" type="text" maxlength="60" placeholder="Nowa kawa" autocomplete="off" enterkeyhint="done" aria-label="Marka i nazwa nowej kawy"><button type="button" class="sbtn" id="coffeeAdd">Dodaj</button></div>
+      <div class="coffee-photo" id="coffeePhotoRow"><span id="coffeeThumbBox"></span><label class="sbtn" for="coffeePhoto" id="coffeePhotoLbl">Zrób zdjęcie opakowania</label><input type="file" id="coffeePhoto" accept="image/*" capture="environment" hidden></div>
+    </div>
     <div>
       <div class="label">OCENA OGÓLNA</div>
       <div class="stars" id="stars"></div>

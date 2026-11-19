@@ -1,6 +1,36 @@
 // Polish source phrases used by the retained brewing engine and the React screens.
 // Long instructions take precedence over short labels; numbers stay dynamic.
 export const messages = `
+Najlepiej dla tej kawy|Best for this coffee
+Pierwszy napar tej kawy tą metodą. Po ocenie zapamiętam ustawienia.|First brew of this coffee with this method. I'll remember the settings after you rate it.
+mało danych|little data
+naparów|brews
+napary|brews
+napar|brew
+Nowa kawa|New coffee
+Najlepsza ocena|Best rating
+z 5|of 5
+Jeszcze bez ocen|No ratings yet
+Usuń kawę|Delete coffee
+Usunąć tę kawę z bazy? Wpisy w historii zostaną.|Delete this coffee from the list? History entries stay.
+Usunięto kawę|Coffee deleted
+Zmień zdjęcie opakowania|Change package photo
+Zrób zdjęcie opakowania|Take a package photo
+Zapisano zdjęcie opakowania|Package photo saved
+Nie udało się odczytać zdjęcia|Could not read the photo
+Najpierw wpisz lub wybierz kawę|First type or pick a coffee
+Wpisz markę i nazwę kawy|Type the brand and name of the coffee
+Brak miejsca w pamięci telefonu|Not enough storage on this phone
+Marka i nazwa nowej kawy|Brand and name of a new coffee
+Przy ocenie wpisz markę kawy i zrób zdjęcie opakowania. Tutaj zbiorę, jakie ustawienia najlepiej sprawdziły się z każdą kawą.|When rating, enter the coffee brand and take a photo of the package. Here I'll collect which settings worked best with each coffee.
+TWOJE KAWY|YOUR COFFEES
+Zmień zdjęcie|Change photo
+Dodaj zdjęcie|Add photo
+Nie wybrano|None
+Dodaj|Add
+KAWA|COFFEE
+śr.|avg.
+Pamiętam 100 ostatnich.|I keep the last 100.
 Usunąć ten wpis z historii?|Delete this entry from history?
 Usunięto wpis|Entry deleted
 Usuń ten wpis|Delete this entry
@@ -240,7 +270,7 @@ Zapisz do historii|Save to history
 Po parzeniu wybierz smak i moc. Podpowiem, co zmienić w następnej kawie.|After brewing, select taste and strength. I will suggest what to change next time.
 Historia · 5 ostatnich|History · last 5
 Wyczyść|Clear
-Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.|No saved coffees. Rate and save a brew to see it here. The last 30 are kept.
+Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 100 ostatnich.|No saved coffees. Rate and save a brew to see it here. The last 100 are kept.
 Użyj tych ustawień|Use these settings
 Użyj z poprawkami|Use with adjustments
 Wczytano z poprawkami|Loaded with adjustments

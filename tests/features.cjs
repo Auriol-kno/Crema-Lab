@@ -83,5 +83,32 @@ let browser;
  {const p=await open({viewport:{width:375,height:667}});const box=await p.locator('#guideCta').boundingBox();const navBox=await p.locator('nav').boundingBox();
   assert(box&&box.y+box.height<=navBox.y+1,'guide button above the fold');await p.context().close();}
 
- assert.deepEqual(errors,[]);console.log('PASS: night/day/system mode for 3 themes, docked controls during preview, rating prompt, history delete, missed alert after lock, manifest + offline start, guide button above the fold.');
+
+ // 8. Coffee database: name and package photo at rating, best settings on Kawa, "Twoje kawy" list.
+ {const p=await open();
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANBAEB0fWA6QAAAABJRU5ErkJggg==','base64');
+  const rate=async(stars)=>{await nav(p,1);await p.click('#resetBtn');await p.click('#mainBtn');await p.waitForTimeout(400);await p.click('#mainBtn');await p.getByRole('button',{name:'Zakończ i oceń kawę'}).click();
+   await p.click(`#stars [data-s="${stars}"]`);await p.click('#tasteChips [data-t="ok"]');await p.click('#bodyChips [data-b="ok"]');};
+  await rate(5);await p.fill('#coffeeName','Hayb Brazylia');await p.click('#coffeeAdd');
+  assert.equal(await p.locator('#coffeeChips button[aria-pressed="true"]').innerText(),'Hayb Brazylia');
+  await p.locator('#coffeePhoto').setInputFiles({name:'pack.png',mimeType:'image/png',buffer:png});
+  await p.locator('#coffeeThumbBox img').waitFor();
+  await p.click('#saveBtn');
+  // second rating: the coffee is offered as a chip and stays selected
+  await rate(3);assert.equal(await p.locator('#coffeeChips button').count(),1);assert.equal(await p.locator('#coffeeChips button[aria-pressed="true"]').count(),1);await p.click('#saveBtn');
+  await nav(p,3);assert.equal(await p.locator('#hist .h-coffee').count(),2);assert.equal(await p.locator('#hist .h-thumb').count(),2);
+  assert.match(await p.locator('#coffees .cf').innerText(),/Hayb Brazylia[\s\S]*2 napary/);assert.equal(await p.locator('#coffees img.cf-thumb').count(),1);
+  await nav(p,0);assert(await p.locator('#coffeeRow').isVisible());assert.equal(await p.locator('#homeCoffee').inputValue()!=='',true);
+  assert.match(await p.locator('#coffeeHint').innerText(),/★★★★★/);
+  const saved=await p.evaluate(()=>({c:JSON.parse(localStorage.getItem('cremalab.coffees.v1')),ph:Object.keys(JSON.parse(localStorage.getItem('cremalab.photos.v1'))).length,h:JSON.parse(localStorage.getItem('cremalab.iphone.v3')).hist.map(h=>h.coffee)}));
+  assert.equal(saved.c.list.length,1);assert.equal(saved.ph,1);assert.deepEqual(saved.h,[saved.c.list[0].id,saved.c.list[0].id]);
+  // The backup carries the coffee list and photos and restores them.
+  await nav(p,3);await p.locator('.backup summary').click();const [dl]=await Promise.all([p.waitForEvent('download'),p.getByRole('button',{name:'Eksportuj kopię'}).click()]);
+  const file=require('node:fs').readFileSync(await dl.path());
+  await p.evaluate(()=>{localStorage.removeItem('cremalab.coffees.v1');localStorage.removeItem('cremalab.photos.v1');});
+  p.once('dialog',d=>d.accept());await p.locator('.backup input[type="file"]').setInputFiles({name:'b.json',mimeType:'application/json',buffer:file});await p.waitForTimeout(800);
+  const back=await p.evaluate(()=>[JSON.parse(localStorage.getItem('cremalab.coffees.v1')||'null'),Object.keys(JSON.parse(localStorage.getItem('cremalab.photos.v1')||'{}')).length]);
+  assert.equal(back[0]?.list[0]?.name,'Hayb Brazylia');assert.equal(back[1],1);
+  await p.context().close();}
+ assert.deepEqual(errors,[]);console.log('PASS: night/day/system mode for 3 themes, docked controls during preview, rating prompt, history delete, missed alert after lock, manifest + offline start, guide button above the fold, coffee database with photo.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
