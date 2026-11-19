@@ -1,5 +1,8 @@
 import { translate, currentLanguage } from './i18n';
 import { M, ORDER, DEF } from './recipes';
+const HIST_MAX=30;
+import { advise as adviseCore, TASTES, BODIES, tasteOf } from './advice';
+const advise=(...a)=>adviseCore(...a.slice(0,8),currentLanguage()==='en'?'.':',');
 
 // Existing brewing engine retained during the React migration. DOM is scoped to stable screen components.
 export function initBrewing(navigate, notify) {
@@ -27,14 +30,14 @@ function load(){
     if(v.anna===true) S.anna=true;
     if(v.alerts&&typeof v.alerts==='object') S.alerts=Object.assign({},S.alerts,v.alerts);
     if(v.maint&&typeof v.maint==='object') S.maint={shots:+v.maint.shots||0,grams:+v.maint.grams||0,items:Object.assign({},v.maint.items||{})};
-    if(!old&&Array.isArray(v.hist)) S.hist=v.hist.filter(h=>h&&M[h.method]).slice(0,5);
+    if(!old&&Array.isArray(v.hist)) S.hist=v.hist.filter(h=>h&&M[h.method]).slice(0,HIST_MAX);
   }catch(e){}
 }
 const MILK={none:{n:'Bez mleka'},cortado:{n:'Cortado',ml:60,t:'55–60'},flat:{n:'Flat white',ml:110,t:'55–60'},capp:{n:'Cappuccino',ml:150,t:'60–65'},latte:{n:'Latte',ml:220,t:'60–65'}};
 const ROAST={light:{n:'Jasne',pid:96},medium:{n:'Średnie',pid:94},dark:{n:'Ciemne',pid:91}};
 load();
 if(!S.anna){S.anna=true; S.pre=false; if(S.params.espresso.temp===93) S.params.espresso.temp=94; try{localStorage.setItem(KEY,JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(KEY)||'{}'),{anna:true,pre:false})));}catch(e){}}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({method:S.method,pre:S.pre,pidx:S.pidx,params:S.params,grinder:S.grinder,lelit:S.lelit,milk:S.milk,roast:S.roast,warm:S.warm,anna:S.anna,maint:S.maint,alerts:S.alerts,hist:S.hist}));}catch(e){}}
+function persist(){window.dispatchEvent(new CustomEvent('crema:data'));try{localStorage.setItem(KEY,JSON.stringify({method:S.method,pre:S.pre,pidx:S.pidx,params:S.params,grinder:S.grinder,lelit:S.lelit,milk:S.milk,roast:S.roast,warm:S.warm,anna:S.anna,maint:S.maint,alerts:S.alerts,hist:S.hist}));}catch(e){}}
 
 let run=false, el=0, t0=0, wl=null, shotCounted=false;
 const R={stars:0,taste:null,body:null};
@@ -176,7 +179,7 @@ function sliderDefs(){
   const m=M[S.method], defs=[
     {k:'dose',label:'Dawka kawy',r:m.dose,lo:m.dose[0]+' g',hi:m.dose[1]+' g'},
     {k:'ratio',label:'Proporcja kawa : woda',r:m.ratio,lo:'1:'+num(m.ratio[0]),hi:'1:'+num(m.ratio[1])}];
-  if(m.temp) defs.push({k:'temp',label:S.method==='espresso'?'PID Anny · temperatura kotła':'Temperatura wody',r:m.temp,lo:m.temp[0]+' °C',hi:m.temp[1]+' °C'});
+  if(m.temp&&S.method!=='espresso') defs.push({k:'temp',label:'Temperatura wody',r:m.temp,lo:m.temp[0]+' °C',hi:m.temp[1]+' °C'});
   if(G()==='kpro') defs.push({k:'grind',label:'Mielenie (K-Pro)',r:[0,10,.1],lo:'0 · drobniej',hi:'grubiej · 10'});
   return defs;
 }
@@ -185,7 +188,8 @@ function buildSliders(){
   $('sliders').innerHTML=sliderDefs().map(d=>
     '<div class="sl"><div class="sl-head"><span id="lab-'+d.k+'">'+d.label+'</span><output id="out-'+d.k+'"></output></div>'
     +'<input type="range" id="sl-'+d.k+'" data-k="'+d.k+'" min="'+d.r[0]+'" max="'+d.r[1]+'" step="'+d.r[2]+'" value="'+p[d.k]+'" aria-labelledby="lab-'+d.k+'">'
-    +'<div class="sl-foot"><span>'+d.lo+'</span><span id="hint-'+d.k+'"></span><span>'+d.hi+'</span></div></div>').join('');
+    +'<div class="sl-foot"><span>'+d.lo+'</span><span id="hint-'+d.k+'"></span><span>'+d.hi+'</span></div></div>').join('')
+    +(S.method==='espresso'?'<p class="g-note pid-note">Temperaturę espresso (PID) ustawiasz w zakładce Lelit Anna.</p>':'');
 }
 const SCENES={espresso:'sEspresso',aeropress:'sAero',v60:'sV60',french:'sFrench',turkish:'sTurkish',moka:'sMoka'};
 function buildAll(){
@@ -412,46 +416,6 @@ function update(){
 }
 
 /* ---------- rating & advice ---------- */
-const TASTES=[{k:'kwasne',l:'Kwaśne',z:'under'},{k:'wodniste',l:'Wodniste',z:'under'},{k:'ok',l:'Zbalansowane',z:'ok'},{k:'gorzkie',l:'Gorzkie',z:'over'},{k:'cierpkie',l:'Cierpkie',z:'over'}];
-const BODIES=[{k:'slaba',l:'Za słaba'},{k:'ok',l:'W sam raz'},{k:'mocna',l:'Za mocna'}];
-const tasteOf=k=>TASTES.find(t=>t.k===k);
-function advise(method,p,preIdx,taste,body,time,stars,gr0){
-  const m=M[method], pr=m.presets[preIdx]||m.presets[0], z=tasteOf(taste).z, st=m.gstep, rows=[], delta={};
-  const LL=gr0&&gr0.type==='lelit'?gr0.lelit:null;
-  const w=method==='espresso'?pr.w:null;
-  if(z==='under'){
-    if(LL){const nd=lFiner(LL.dial,.5); if(nd!==LL.dial){delta.lelitDial=nd; rows.push(['Mielenie','Drobniej: pokrętło ½ działki w stronę FINE ('+num(LL.dial)+' → '+num(nd)+'). Kręć tylko podczas mielenia.']);} else rows.push(['Mielenie','Pokrętło jest przy 1, nie schodź niżej. Zwiększ dawkę o 0,5 g albo popraw ubijanie.']);}
-    else{const ng=gr(clamp(p.grind-st,0,10)); delta.grind=ng;
-    rows.push(['Mielenie','Drobniej: '+gtxt(p.grind)+' → '+gtxt(ng)+' ('+Math.round(st*10)+' klik.).']);}
-    if(m.temp&&p.temp<m.temp[1]){const nt=Math.min(m.temp[1],p.temp+(method==='espresso'?1:2)); delta.temp=nt; rows.push(['Woda','Cieplejsza: '+p.temp+' → '+nt+' °C.']);}
-    if(method==='espresso'&&time&&w&&time<w[0]) rows.push(['Czas','Shot za szybki ('+num(time)+' s przy celu '+w[0]+'–'+w[1]+' s). Drobniejsze mielenie go wydłuży.']);
-    if(method==='aeropress'||method==='french') rows.push(['Czas','Parz o 30 s dłużej przed '+(method==='french'?'wciśnięciem tłoka':'prasowaniem')+'.']);
-    if(method==='v60') rows.push(['Nalewanie','Lej wolniej, małą spiralą, i zakręć dripperem po bloomie.']);
-    if(method==='moka') rows.push(['Płyta','Startuj z gorętszą wodą w zbiorniku i nie zdejmuj za wcześnie, poczekaj, aż kawa wypłynie cała.']);
-    if(method==='turkish') rows.push(['Ogień','Grzej wolniej, na najmniejszym ogniu. Dłuższy kontakt z wodą wydobędzie więcej smaku.']);
-    if(taste==='wodniste'&&body!=='mocna'){const nr=gr(clamp(p.ratio-(method==='espresso'?.2:1),m.ratio[0],m.ratio[1])); delta.ratio=nr; rows.push(['Proporcja','Mocniej: 1:'+num(p.ratio)+' → 1:'+num(nr)+'.']);}
-  }else if(z==='over'){
-    if(LL){const nd=lCoarser(LL.dial,.5); delta.lelitDial=nd; rows.push(['Mielenie','Grubiej: pokrętło ½ działki w stronę COARSE ('+num(LL.dial)+' → '+num(nd)+'). Kręć tylko podczas mielenia.']);}
-    else{const ng=gr(clamp(p.grind+st,0,10)); delta.grind=ng;
-    rows.push(['Mielenie','Grubiej: '+gtxt(p.grind)+' → '+gtxt(ng)+' ('+Math.round(st*10)+' klik.).']);}
-    if(m.temp&&p.temp>m.temp[0]){const nt=Math.max(m.temp[0],p.temp-(method==='espresso'?1:2)); delta.temp=nt; rows.push(['Woda','Chłodniejsza: '+p.temp+' → '+nt+' °C.']);}
-    if(method==='espresso'&&time&&w&&time>w[1]) rows.push(['Czas','Shot za długi ('+num(time)+' s przy celu '+w[0]+'–'+w[1]+' s). Grubsze mielenie go skróci.']);
-    if(method==='aeropress'||method==='french') rows.push(['Czas','Skróć parzenie o 30 s i wciskaj tłok bez siły.']);
-    if(method==='v60') rows.push(['Nalewanie','Mniej mieszania i krótszy bloom (30 s).']);
-    if(method==='moka') rows.push(['Płyta','Niższa moc (4 zamiast 6) i zdejmij, gdy strumień zaczyna jaśnieć. Od razu schłodź dół pod zimną wodą.']);
-    if(method==='turkish') rows.push(['Ogień','Zdejmij z ognia wcześniej, gdy pianka zacznie rosnąć. Nie dopuść do wrzenia.']);
-    if(taste==='cierpkie') rows.push(['Kontrola','Cierpkość to często nierówny przepływ. Rozbij grudki przed ubijaniem lub nalewaniem.']);
-  }
-  if(body==='slaba'&&!(taste==='wodniste'&&delta.ratio)){const nr=gr(clamp(p.ratio-(method==='espresso'?.2:1),m.ratio[0],m.ratio[1])); if(nr!==p.ratio){delta.ratio=nr; rows.push(['Proporcja','Mocniej: 1:'+num(p.ratio)+' → 1:'+num(nr)+' (ta sama dawka, mniej wody).']);}}
-  if(body==='mocna'){const nr=gr(clamp(p.ratio+(method==='espresso'?.2:1),m.ratio[0],m.ratio[1])); if(nr!==p.ratio){delta.ratio=nr; rows.push(['Proporcja','Łagodniej: 1:'+num(p.ratio)+' → 1:'+num(nr)+'.']);}}
-  if(z==='ok'&&body!=='slaba'&&body!=='mocna'){
-    if(stars&&stars<=3) rows.push(['Ziarno','Smak w balansie, a ocena niska: spróbuj świeższej kawy (7–28 dni od palenia) albo innego ziarna.']);
-    else rows.push(['Przepis','Nic nie zmieniaj. Zapisz i powtórz te ustawienia.']);
-  }
-  if(LL){const est=LL.time*LL.rate; if(Math.abs(est-p.dose)>0.4){const nt=r1(clamp(p.dose/LL.rate,2,20)); delta.lelitTime=nt; rows.push(['Czas mielenia','Lelit daje ≈ '+num(r1(est))+' g przy dawce '+num(p.dose)+' g. Ustaw '+num(nt)+' s na 2 dawki.']);}}
-  const verdict=z==='under'?'Niedoekstrahowana':z==='over'?'Przeekstrahowana':'Zbalansowana';
-  return {rows,delta,z,verdict};
-}
 function currentAdvice(){
   if(!R.taste) return null;
   return advise(S.method,S.params[S.method],S.pidx[S.method],R.taste,R.body||'ok',el>0?el:null,R.stars,{type:G(),lelit:S.lelit});
@@ -488,7 +452,7 @@ $('saveBtn').addEventListener('click',()=>{
   const p=S.params[S.method];
   S.hist.unshift({ts:Date.now(),method:S.method,preset:S.pidx[S.method],dose:p.dose,ratio:p.ratio,temp:p.temp,grind:p.grind,grinder:G(),ldial:S.lelit.dial,ltime:S.lelit.time,
     time:el>0?Math.round(el*10)/10:null,stars:R.stars,taste:R.taste,body:R.body||'ok',z:a.z,adv:a.rows.map(r=>r[0]+': '+r[1]),delta:a.delta});
-  S.hist=S.hist.slice(0,5); persist(); renderHist();
+  S.hist=S.hist.slice(0,HIST_MAX); persist(); renderHist();
   R.stars=0; R.taste=null; R.body=null; renderRating();
   toast('Zapisano w historii');
 });
@@ -496,7 +460,8 @@ $('saveBtn').addEventListener('click',()=>{
 /* ---------- history ---------- */
 function renderHist(){
   $('clearHist').hidden=!S.hist.length;
-  if(!S.hist.length){$('hist').innerHTML='<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 5 ostatnich.</p>'; return;}
+  $('histCount').textContent=S.hist.length?S.hist.length+' / '+HIST_MAX:'';
+  if(!S.hist.length){$('hist').innerHTML='<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.</p>'; return;}
   $('hist').innerHTML=S.hist.map((h,i)=>{
     const m=M[h.method], pr=m.presets[h.preset]||m.presets[0];
     let when=''; try{when=new Date(h.ts).toLocaleString(currentLanguage()==='en'?'en-GB':'pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
@@ -511,11 +476,12 @@ function renderHist(){
       +'<div><span class="pill" data-z="'+h.z+'">'+t.l.toUpperCase()+'</span><span class="pill" data-z="'+(h.body==='ok'?'ok':'under')+'" style="'+(h.body==='mocna'?'background:rgba(242,123,108,.18);color:var(--bad)':'')+'">'+b.l.toUpperCase()+'</span></div>'
       +(adv?'<div class="h-adv"><b>'+(ai>0?adv.slice(0,ai):'')+'</b>'+(ai>0?': '+adv.slice(ai+2):adv)+'</div>':'')
       +'<div class="h-act"><button type="button" data-load="'+i+'">Użyj tych ustawień</button>'
-      +(h.delta&&Object.keys(h.delta).length?'<button type="button" data-next="'+i+'">Użyj z poprawkami</button>':'')+'</div></div>';
+      +(h.delta&&Object.keys(h.delta).length?'<button type="button" data-next="'+i+'">Użyj z poprawkami</button>':'')+'<button type="button" class="h-del" data-del="'+i+'" aria-label="Usuń ten wpis">Usuń</button></div></div>';
   }).join('');
 }
 $('hist').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.del!=null){const k=+b.dataset.del; if(!S.hist[k]||!window.confirm(translate('Usunąć ten wpis z historii?'))) return; S.hist.splice(k,1); persist(); renderHist(); toast('Usunięto wpis'); return;}
   const i=+(b.dataset.load??b.dataset.next), h=S.hist[i]; if(!h) return;
   stopRun(); el=0;
   S.method=h.method; S.pidx[h.method]=h.preset||0;
@@ -647,7 +613,10 @@ function events(d){
 }
 function checkAlerts(d){
   if(!run) return;
-  events(d).forEach(ev=>{ const id=ev.k+'@'+ev.t.toFixed(1); if(!fired[id]&&el>=ev.t&&el<ev.t+3){fired[id]=1; fire(ev);} else if(el>=ev.t) fired[id]=1; });
+  let missed=null;
+  events(d).forEach(ev=>{ const id=ev.k+'@'+ev.t.toFixed(1); if(fired[id]||el<ev.t) return; fired[id]=1; if(el<ev.t+3) fire(ev); else if(ev.k!=='step') missed=ev; });
+  // Screen lock or app switch: rAF pauses, so show the latest important moment that passed.
+  if(missed) fire(Object.assign({},missed,{sub:'POMINIĘTY ALERT',hint:'Spóźnienie: '+mss(el-missed.t)+'. '+(missed.hint||'')}));
 }
 function resetAlerts(){shotCounted=false; fired={}; clearTint(); $('flash').hidden=true;}
 function alertsUi(){document.querySelectorAll('.alerts button[data-al]').forEach(b=>b.setAttribute('aria-pressed',S.alerts[b.dataset.al]?'true':'false'));}
@@ -663,11 +632,12 @@ function unlock(){try{if(wl) wl.release();}catch(e){} wl=null;}
 function stopRun(){ if(run){run=false; unlock();} }
 $('mainBtn').addEventListener('click',()=>{
   ensureAudio();
-  if(run){stopRun(); countShot(); renderRating(); clearTint();} else {if(el===0) resetAlerts(); else { const d=model(); events(d).forEach(ev=>{ if(el>=ev.t) fired[ev.k+'@'+ev.t.toFixed(1)]=1; }); } run=true; t0=performance.now()-el*1000; lock();}
+  if(run){stopRun(); countShot(); renderRating(); clearTint(); $('ratePrompt').hidden=el<10;} else {$('ratePrompt').hidden=true; if(el===0) resetAlerts(); else { const d=model(); events(d).forEach(ev=>{ if(el>=ev.t) fired[ev.k+'@'+ev.t.toFixed(1)]=1; }); } run=true; t0=performance.now()-el*1000; lock();}
   update();
 });
-$('resetBtn').addEventListener('click',()=>{stopRun(); el=0; resetAlerts(); update(); renderRating();});
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&run) lock(); });
+$('resetBtn').addEventListener('click',()=>{stopRun(); el=0; resetAlerts(); $('ratePrompt').hidden=true; update(); renderRating();});
+$('ratePromptBtn').addEventListener('click',()=>finishBrew());
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&run){ lock(); el=(performance.now()-t0)/1000; update(); } });
 
 function frame(){
   if(run){
@@ -744,10 +714,10 @@ function servUi(){
   $('serv').innerHTML=MAINT.map(it=>{
     const rec=I[it.k]; let frac, info;
     if(it.grams){const g=S.maint.grams-((rec&&rec.g)||0); frac=g/it.grams; info=(g/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' z 4 kg';}
-    else{ if(!rec){frac=0; info='jeszcze nie oznaczono';} else {const dd=(now-rec.t)/864e5; frac=dd/it.days; info=Math.floor(dd)+' z '+it.days+' dni';}}
+    else{ if(!rec){frac=0; info='';} else {const dd=(now-rec.t)/864e5; frac=dd/it.days; info=Math.floor(dd)+' z '+it.days+' dni';}}
     const st=frac>=1?'due':frac>=.8?'soon':'';
     const col=st==='due'?'var(--bad)':st==='soon'?'var(--accent)':'var(--good)';
-    return '<div class="sv '+st+'"><b>'+it.n+'</b><button type="button" data-mt="'+it.k+'">Zrobione</button><small>'+it.d+' · '+info+'</small>'
+    return '<div class="sv '+st+'"><b>'+it.n+'</b><button type="button" data-mt="'+it.k+'">Zrobione</button><small>'+it.d+(info?' · '+info:'')+'</small>'
       +'<div class="bar2"><i style="width:'+Math.min(100,frac*100).toFixed(0)+'%;background:'+col+'"></i></div></div>';
   }).join('');
 }
@@ -890,6 +860,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('guide').hidden
 window.addEventListener('crema:preferences',()=>{buildAll();renderHist();servUi();if(!$('guide').hidden)renderGuide();});
 alertsUi();
 buildAll(); renderHist(); servUi(); requestAnimationFrame(frame);
-return { finish(){stopRun(); countShot(); renderRating(); clearTint(); update(); navigate('rating');} };
+function finishBrew(){stopRun(); countShot(); renderRating(); clearTint(); $('ratePrompt').hidden=true; update(); navigate('rating');}
+return { finish:finishBrew };
 
 }

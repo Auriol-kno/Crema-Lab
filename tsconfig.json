@@ -16,7 +16,8 @@
     "skipLibCheck": true,
     "types": [
       "vite/client"
-    ]
+    ],
+    "allowImportingTsExtensions": true
   },
   "include": [
     "app/src",

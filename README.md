@@ -7,13 +7,14 @@ Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScrip
 - **Kawa:** wybór metody, presetu i ścieżki „Prowadź mnie” / „Sam timer”.
 - **Parzenie:** duży czas, etap, cel, start/stop, ocena kawy oraz rozwijane etapy i wizualizacja. Ciśnienie i ekstrakcja są symulacją, nie pomiarem z urządzenia.
 - **Sprzęt:** osobne zakładki młynków, Lelit Anna i serwisu. K-Pro ma regulację pojedynczym kliknięciem. William zachowuje kalibrację g/s i czas, także gdy inne metody korzystają z K-Pro. Anna zachowuje PID, licznik rozgrzewania i instrukcje obsługi mleka/kotła.
-- **Historia:** pięć ostatnich ocenionych kaw i ponowne użycie ustawień. Eksport/import kopii JSON przenosi dane między urządzeniami.
+- **Historia:** 30 ostatnich ocenionych kaw (z licznikiem i usuwaniem pojedynczych wpisów) i ponowne użycie ustawień. Eksport/import kopii JSON przenosi dane między urządzeniami.
 
 Ustawienia zawierają niezależne wybory motywu, gęstości i języka:
 
 - **Palarnia:** domyślny krem i bordo, duże kontrolki.
 - **Szałwia:** jasne szałwiowe tło, cienkie obrysy i typografia techniczna inspirowana pierwszą referencją.
 - **Soft:** jasna szarość, zaokrąglenia i delikatny relief inspirowany drugą referencją, z czytelnymi stanami wyboru i fokusu.
+- **Tryb Systemowy / Dzień / Noc:** każdy z trzech motywów ma wersję jasną i ciemną; „Systemowy” podąża za ustawieniem iPhone'a i przełącza się na żywo.
 - **Standardowy / Kompaktowy:** kompaktowy zmniejsza tekst, odstępy, kafelki i licznik, zachowując główne cele dotykowe minimum 44 px.
 - **Polski / English:** nawigacja, instrukcje sześciu metod, sprzęt, alerty (także mowa), historia i kopie danych.
 
@@ -36,12 +37,16 @@ Otwórz adres Vite ze ścieżką `/Crema-Lab/`. Nawigacja wykorzystuje fragment 
 
 Strona: https://auriol-kno.github.io/Crema-Lab/
 
-GitHub Pages nadal publikuje `main / (root)`. `npm run build` sprawdza TypeScript, buduje Vite i kopiuje wynik do głównego `index.html`, `assets/` i `icon.png`. Te wygenerowane pliki należy commitować razem ze źródłami. **Nie edytuj głównego index.html ręcznie**; wejście aplikacji to `app/index.html`. Workflow App checks sprawdza, czy wynik builda odpowiada źródłom, i uruchamia testy przeglądarkowe.
+GitHub Pages nadal publikuje `main / (root)`. `npm run build` sprawdza TypeScript, buduje Vite i kopiuje wynik do głównego `index.html`, `assets/`, ikon, `manifest.webmanifest` i `sw.js`. **Nie trzeba już commitować tych plików w PR**: workflow App checks na PR buduje i testuje, a po scaleniu do `main` sam buduje stronę i commituje wynik (`github-actions[bot]`). **Nie edytuj głównego index.html ręcznie**; wejście aplikacji to `app/index.html`.
+
+Aplikacja działa offline (service worker, network-first dla strony, cache dla zasobów), ma manifest do instalacji na ekranie początkowym i prosi przeglądarkę o trwałe przechowywanie danych. W Safari pokazuje jednorazową wskazówkę „Udostępnij → Do ekranu początkowego”, a gdy w historii są co najmniej 3 wpisy i od kopii minęło ponad 21 dni, przypomina o eksporcie.
 
 ## Struktura i migracja
 
 - `app/src/App.tsx`: React, typowana nawigacja i niezależne widoki.
 - `app/src/Backup.tsx`: eksport/import danych z walidacją i potwierdzeniem zastąpienia.
+- `app/src/advice.ts`: czysta logika porad po ocenie (smak, ciało, czas → zmiana mielenia/proporcji/temperatury), testowana jednostkowo.
+- `app/src/mode.css`, `polish.css`: palety nocne trzech motywów oraz dopracowania układu (przyklejony przycisk startu, dok sterowania, ocena gwiazdkami).
 - `app/src/recipes.ts`: typowane definicje metod i ustawienia początkowe.
 - `app/src/preferences.ts`: typowane, niezależne preferencje wyglądu, gęstości i języka.
 - `app/src/i18n.ts`, `messages.ts`: lokalizacja tekstu i etykiet dostępności na granicy DOM istniejącego silnika; nie zastępuje kontrolek ani ich zdarzeń. Oryginalne polskie dane historii nie są nadpisywane przez tłumaczenie.
@@ -60,6 +65,8 @@ npm test
 
 Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm test`. Test uruchamia własny serwer preview i wymaga wcześniejszego builda. Obejmuje sześć metod, prowadzenie, timer podczas nawigacji, alerty w ustawieniach, K-Pro, Williama, PID/rozgrzewanie/mleko/serwis, ocenę i historię, eksport/import oraz zachowanie istniejących danych. Układ sprawdzany przy 320, 375, 390 i 430 px w trzech motywach, obu językach i obu gęstościach. Zrzuty trafiają do `test-results/`.
 
+`tests/advice.test.mjs` (jednostkowe porady), `tests/features.cjs` (tryb dzień/noc/systemowy we wszystkich motywach, dok Wznów/Zeruj podczas podglądu, monit oceny, usuwanie wpisu, pominięty alert po uśpieniu karty, manifest i start offline, przycisk startu widoczny bez przewijania przy 375×667).
+
 Pozostaje test na fizycznym iPhonie w Safari, w tym dźwięk/głos, blokada ekranu oraz powrót po zminimalizowaniu aplikacji. Aplikacja nie łączy się z urządzeniami kawowymi i nie potwierdza ich rzeczywistej temperatury ani ciśnienia.
 
-Palarnia zastępuje fotograficzny ekran espresso otwartym układem: duży licznik, pasek postępu, START/STOP 80 px i Zeruj 56 px. Postęp odpowiada upływowi czasu do końca docelowego okna metody, zatrzymuje się podczas pauzy i resetuje do zera. Po przekroczeniu celu pasek pozostaje na 100%, a timer i ostrzeżenia działają dalej. Masa, ciśnienie i ekstrakcja w rozwijanym podglądzie są symulacją. Motyw, gęstość i język są zapamiętywane bez zmiany danych parzenia.
+Palarnia zastępuje fotograficzny ekran espresso otwartym układem: duży licznik, pasek postępu, START/STOP 80 px i Zeruj 56 px. Postęp odpowiada upływowi czasu do końca docelowego okna metody, zatrzymuje się podczas pauzy i resetuje do zera. Po przekroczeniu celu pasek pozostaje na 100%, a timer i ostrzeżenia działają dalej. Masa, ciśnienie i ekstrakcja w rozwijanym podglądzie są symulacją. Gdy podgląd jest otwarty i główny przycisk zjedzie poza ekran, nad nawigacją pojawia się dok z czasem, Stop/Wznów i Zeruj. Motyw, gęstość i język są zapamiętywane bez zmiany danych parzenia.

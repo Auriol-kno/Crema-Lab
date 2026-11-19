@@ -1,0 +1,41 @@
+/* Day / night / system. Each theme has a dark palette; the mode is independent of the theme. */
+:root[data-mode="dark"][data-theme="palarnia"]{color-scheme:dark;--bg:#1b1512;--surface:#231b17;--surface-2:#2e241f;--track:#3b2e28;--line:#5c483e;--ink:#f3e9dc;--soft:#d9c9b8;--muted:#b09d8c;--dim:#a08e7d;--accent:#e08e98;--on-accent:#1b1512;--good:#9cbf86;--bad:#f08a7c;--cool:#8bbad6;--wash:#e08e9814;--stop:#e08e98;--on-stop:#1b1512;--tint-near:#3a2f16;--tint-stop:#1f3020;--tint-over:#3d1d18;--tint-step:#2a211b}
+:root[data-mode="dark"][data-theme="sage"]{color-scheme:dark;--bg:#171a15;--surface:#1e221b;--surface-2:#283023;--track:#343d2e;--line:#5b6551;--ink:#e7ecdc;--soft:#c8d0bb;--muted:#a0ab94;--dim:#919c85;--accent:#bcd39c;--on-accent:#171a15;--good:#9fca8c;--bad:#f0907f;--cool:#8bbccd;--wash:#bcd39c12;--stop:#bcd39c;--on-stop:#171a15;--tint-near:#33301a;--tint-stop:#1d2f1f;--tint-over:#3a1f1a;--tint-step:#222820}
+:root[data-mode="dark"][data-theme="soft"]{color-scheme:dark;--bg:#1f2125;--surface:#1f2125;--surface-2:#2a2d33;--track:#363a41;--line:#4b5059;--ink:#e8e9ec;--soft:#c8cbd2;--muted:#a1a6b0;--dim:#90959f;--accent:#8db2ec;--on-accent:#10131a;--good:#8cc79f;--bad:#f0907f;--cool:#8db2ec;--wash:#8db2ec12;--stop:#8db2ec;--on-stop:#10131a;--tint-near:#33301c;--tint-stop:#1c2f25;--tint-over:#3a201c;--tint-step:#262931}
+
+:root[data-mode="dark"] .app-shell,:root[data-mode="dark"] body{background:var(--bg)}
+:root[data-mode="dark"] :is(#gGrinders,#gsel) button{background:#17302f!important;color:#c4e3de!important;border-color:#3f6d68!important}
+:root[data-mode="dark"] :is(#gGrinders button[aria-pressed="true"],#gsel button[aria-checked="true"]){background:#2f7c77!important;color:#f4fffd!important;border-color:#2f7c77!important;box-shadow:none!important}
+:root[data-mode="dark"] :is(#gMilk,#milkChips) button{background:#33251a!important;color:#f0d3a8!important;border-color:#7a5a32!important}
+:root[data-mode="dark"] :is(#gMilk,#milkChips) button[aria-pressed="true"]{background:#b56f2e!important;color:#1b1209!important;border-color:#b56f2e!important;box-shadow:none!important}
+:root[data-mode="dark"] .alert-settings .alerts button[aria-pressed="true"]{background:#17302f!important;border-color:#2f7c77!important;color:#c4e3de!important}
+:root[data-mode="dark"] .settings,:root[data-mode="dark"] dialog{background:var(--surface);color:var(--ink)}
+:root[data-mode="dark"] .appearance-settings select{background:var(--surface-2);color:var(--ink)}
+:root[data-mode="dark"] .toast{background:var(--ink);color:var(--bg)}
+:root[data-mode="dark"] img,:root[data-mode="dark"] .sv .bar2{filter:none}
+
+:root[data-mode="dark"][data-theme="soft"] .screen .card,:root[data-mode="dark"][data-theme="soft"] .details-card,:root[data-mode="dark"][data-theme="soft"] .settings{border-color:#2a2d33!important;box-shadow:5px 5px 12px #121316b0,-4px -4px 10px #2c2f36a0!important}
+:root[data-mode="dark"][data-theme="soft"] .app-shell button,:root[data-mode="dark"][data-theme="soft"] .app-shell select{box-shadow:3px 3px 7px #121316b0,-3px -3px 7px #2c2f3690}
+:root[data-mode="dark"][data-theme="soft"] .app-shell button:active{box-shadow:inset 2px 2px 5px #0d0e10,inset -2px -2px 5px #2c2f36}
+:root[data-mode="dark"][data-theme="soft"] .recipe .tabs button[aria-selected="true"],:root[data-mode="dark"][data-theme="soft"] .g-choice button[aria-pressed="true"]{color:#10131a!important;box-shadow:inset 2px 2px 4px #3d5f9480!important}
+@media (prefers-color-scheme: dark){
+:root[data-mode="system"][data-theme="palarnia"]{color-scheme:dark;--bg:#1b1512;--surface:#231b17;--surface-2:#2e241f;--track:#3b2e28;--line:#5c483e;--ink:#f3e9dc;--soft:#d9c9b8;--muted:#b09d8c;--dim:#a08e7d;--accent:#e08e98;--on-accent:#1b1512;--good:#9cbf86;--bad:#f08a7c;--cool:#8bbad6;--wash:#e08e9814;--stop:#e08e98;--on-stop:#1b1512;--tint-near:#3a2f16;--tint-stop:#1f3020;--tint-over:#3d1d18;--tint-step:#2a211b}
+:root[data-mode="system"][data-theme="sage"]{color-scheme:dark;--bg:#171a15;--surface:#1e221b;--surface-2:#283023;--track:#343d2e;--line:#5b6551;--ink:#e7ecdc;--soft:#c8d0bb;--muted:#a0ab94;--dim:#919c85;--accent:#bcd39c;--on-accent:#171a15;--good:#9fca8c;--bad:#f0907f;--cool:#8bbccd;--wash:#bcd39c12;--stop:#bcd39c;--on-stop:#171a15;--tint-near:#33301a;--tint-stop:#1d2f1f;--tint-over:#3a1f1a;--tint-step:#222820}
+:root[data-mode="system"][data-theme="soft"]{color-scheme:dark;--bg:#1f2125;--surface:#1f2125;--surface-2:#2a2d33;--track:#363a41;--line:#4b5059;--ink:#e8e9ec;--soft:#c8cbd2;--muted:#a1a6b0;--dim:#90959f;--accent:#8db2ec;--on-accent:#10131a;--good:#8cc79f;--bad:#f0907f;--cool:#8db2ec;--wash:#8db2ec12;--stop:#8db2ec;--on-stop:#10131a;--tint-near:#33301c;--tint-stop:#1c2f25;--tint-over:#3a201c;--tint-step:#262931}
+
+:root[data-mode="system"] .app-shell,:root[data-mode="system"] body{background:var(--bg)}
+:root[data-mode="system"] :is(#gGrinders,#gsel) button{background:#17302f!important;color:#c4e3de!important;border-color:#3f6d68!important}
+:root[data-mode="system"] :is(#gGrinders button[aria-pressed="true"],#gsel button[aria-checked="true"]){background:#2f7c77!important;color:#f4fffd!important;border-color:#2f7c77!important;box-shadow:none!important}
+:root[data-mode="system"] :is(#gMilk,#milkChips) button{background:#33251a!important;color:#f0d3a8!important;border-color:#7a5a32!important}
+:root[data-mode="system"] :is(#gMilk,#milkChips) button[aria-pressed="true"]{background:#b56f2e!important;color:#1b1209!important;border-color:#b56f2e!important;box-shadow:none!important}
+:root[data-mode="system"] .alert-settings .alerts button[aria-pressed="true"]{background:#17302f!important;border-color:#2f7c77!important;color:#c4e3de!important}
+:root[data-mode="system"] .settings,:root[data-mode="system"] dialog{background:var(--surface);color:var(--ink)}
+:root[data-mode="system"] .appearance-settings select{background:var(--surface-2);color:var(--ink)}
+:root[data-mode="system"] .toast{background:var(--ink);color:var(--bg)}
+:root[data-mode="system"] img,:root[data-mode="system"] .sv .bar2{filter:none}
+
+:root[data-mode="system"][data-theme="soft"] .screen .card,:root[data-mode="system"][data-theme="soft"] .details-card,:root[data-mode="system"][data-theme="soft"] .settings{border-color:#2a2d33!important;box-shadow:5px 5px 12px #121316b0,-4px -4px 10px #2c2f36a0!important}
+:root[data-mode="system"][data-theme="soft"] .app-shell button,:root[data-mode="system"][data-theme="soft"] .app-shell select{box-shadow:3px 3px 7px #121316b0,-3px -3px 7px #2c2f3690}
+:root[data-mode="system"][data-theme="soft"] .app-shell button:active{box-shadow:inset 2px 2px 5px #0d0e10,inset -2px -2px 5px #2c2f36}
+:root[data-mode="system"][data-theme="soft"] .recipe .tabs button[aria-selected="true"],:root[data-mode="system"][data-theme="soft"] .g-choice button[aria-pressed="true"]{color:#10131a!important;box-shadow:inset 2px 2px 4px #3d5f9480!important}
+}

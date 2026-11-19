@@ -1,6 +1,29 @@
 // Polish source phrases used by the retained brewing engine and the React screens.
 // Long instructions take precedence over short labels; numbers stay dynamic.
 export const messages = `
+Usunąć ten wpis z historii?|Delete this entry from history?
+Usunięto wpis|Entry deleted
+Usuń ten wpis|Delete this entry
+Usuń|Delete
+Pominięty alert|Missed alert
+Spóźnienie|Late by
+Jak smakowało?|How did it taste?
+Oceń teraz, póki pamiętasz smak.|Rate it now, while you remember the taste.
+Temperaturę espresso (PID) ustawiasz w zakładce Lelit Anna.|Set the espresso temperature (PID) in the Lelit Anna tab.
+Stuknij „Zrobione”, gdy wykonasz czynność, wtedy ruszy odliczanie.|Tap “Done” after a task to start its countdown.
+Tryb kolorów|Colour mode
+Systemowy · jak w telefonie|System · follow the phone
+Dzień · jasny|Day · light
+Noc · ciemny|Night · dark
+Dodaj Crema Lab do ekranu początkowego.|Add Crema Lab to your Home Screen.
+Udostępnij → „Do ekranu początkowego”. Aplikacja otworzy się na pełnym ekranie, a Safari nie wyczyści Twojej historii.|Share → “Add to Home Screen”. It opens full screen and Safari won't clear your history.
+Ukryj podpowiedź|Hide tip
+Zrób kopię danych.|Back up your data.
+Historia i kalibracja są tylko na tym telefonie.|History and calibration are stored only on this phone.
+Ostatnia kopia danych była dawno albo nigdy. Zapisz ją poniżej.|Your last backup was long ago or never. Save one below.
+Kopia|Backup
+Sterowanie parzeniem|Brew controls
+parzenie trwa|brewing
 Wygląd i język|Appearance and language
 Motyw aplikacji|App theme
 Palarnia · krem i bordo|Roastery · cream and burgundy
@@ -217,7 +240,7 @@ Zapisz do historii|Save to history
 Po parzeniu wybierz smak i moc. Podpowiem, co zmienić w następnej kawie.|After brewing, select taste and strength. I will suggest what to change next time.
 Historia · 5 ostatnich|History · last 5
 Wyczyść|Clear
-Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 5 ostatnich.|No saved coffees. Rate and save a brew to see it here. The last 5 are kept.
+Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.|No saved coffees. Rate and save a brew to see it here. The last 30 are kept.
 Użyj tych ustawień|Use these settings
 Użyj z poprawkami|Use with adjustments
 Wczytano z poprawkami|Loaded with adjustments

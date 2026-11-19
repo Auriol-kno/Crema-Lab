@@ -1,0 +1,38 @@
+/* Review fixes: visible primary actions, clearer states, docked brew controls. */
+/* Home: "Prowadź mnie" and "Sam timer" stay reachable without scrolling. */
+.screen[aria-label="Wybór kawy"] .brew-choices{position:sticky;bottom:-24px;z-index:4;background:var(--bg)!important;padding:10px 0 24px;margin-bottom:-24px;box-shadow:0 -10px 14px -10px var(--bg)}
+/* sticky edge = content padding, so nothing peeks out underneath */
+:root[data-density="compact"] .screen[aria-label="Wybór kawy"] .brew-choices{bottom:-12px;padding-bottom:12px;margin-bottom:-12px}
+/* Hints */
+.hint-card{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-card,6px);background:var(--surface);font-size:13px;line-height:1.45;color:var(--soft)}
+.hint-card p{margin:0;flex:1}.hint-card b{color:var(--ink)}
+.hint-card button{flex:none;min-width:36px;height:36px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:var(--r-ctl,6px);font-size:18px;line-height:1}
+.hint-card.warn{border-color:var(--accent)}
+.hint-card .hint-action{width:auto;padding:0 12px;font-size:14px;font-weight:700;background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+/* Extraction preview: the dial no longer repeats the big timer above it. */
+.visual-details .readout{display:none!important}
+/* Chips that used to be cut at the edge now wrap. */
+#roastChips,#milkChips{flex-wrap:wrap!important;overflow:visible!important;margin-inline:0!important;padding-inline:0!important}
+/* Stars: outline until chosen. */
+.stars button:not(.on) svg{fill:none;stroke:currentColor;stroke-width:1.6}
+.stars button:not(.on){color:var(--muted)}
+/* After STOP: rate while the taste is fresh. */
+.rate-prompt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border:2px solid var(--accent);border-radius:var(--r-card,6px);background:var(--wash);color:var(--soft);font-size:14px}
+.rate-prompt[hidden]{display:none}
+.rate-prompt span{flex:1 1 180px}.rate-prompt b{color:var(--ink)}
+.rate-prompt button{min-height:48px;padding:0 16px;border:0;border-radius:var(--r-ctl,6px);background:var(--accent);color:var(--on-accent);font:800 16px var(--body)}
+/* History: delete one entry. */
+.h-act{flex-wrap:wrap}
+.h-act .h-del{margin-left:auto;color:var(--bad)!important;border-color:transparent!important;background:transparent!important}
+.pid-note{margin:2px 0 0}
+/* Docked Start/Stop + Reset while the extraction preview is open. */
+.control-dock{margin:0 8px 8px;z-index:11;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,.9fr);gap:8px;align-items:center;padding:8px;border:1px solid var(--accent);border-radius:var(--r-card,6px);background:var(--surface);box-shadow:0 -8px 22px -14px #0007}
+/* The dock takes its own grid row between the content and the navigation, so it never covers either. */
+.app-shell[data-dock="on"]{grid-template-rows:auto minmax(0,1fr) auto auto}
+.dock-time{display:flex;flex-direction:column;padding-left:6px;min-width:0}
+.dock-time b{font:800 26px/1 var(--timer,var(--body));font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.dock-time span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dock-main,.dock-reset{min-height:56px;border-radius:var(--r-ctl,6px);font:800 19px var(--body)}
+.dock-main{border:1px solid var(--stop,var(--accent));background:var(--stop,var(--accent));color:var(--on-stop,var(--on-accent))}
+.dock-reset{border:1px solid var(--line);background:transparent;color:var(--ink)}
+:root[data-density="compact"] .dock-main,:root[data-density="compact"] .dock-reset{min-height:46px;font-size:16px}

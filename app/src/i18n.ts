@@ -21,6 +21,7 @@ export function startLocalization(){
  };
  const observer=new MutationObserver(records=>{observer.disconnect();for(const record of records){if(record.type==='childList'){for(const child of record.addedNodes)localize(child);}else localize(record.target);}observe();});
  const observe=()=>observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:names});
- const refresh=()=>{observer.disconnect();localize(root);observe();};refresh();window.addEventListener('crema:preferences',refresh);
+ // Polish is the source language: skip the tree walk and the observer entirely.
+ const refresh=()=>{observer.disconnect();if(currentLanguage()==='pl'&&!active)return;localize(root);active=currentLanguage()!=='pl';if(active)observe();};let active=false;refresh();window.addEventListener('crema:preferences',refresh);
  return ()=>{observer.disconnect();window.removeEventListener('crema:preferences',refresh);};
 }
