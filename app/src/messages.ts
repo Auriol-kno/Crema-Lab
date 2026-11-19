@@ -27,7 +27,7 @@ parzenie trwa|brewing
 Wygląd i język|Appearance and language
 Motyw aplikacji|App theme
 Palarnia · krem i bordo|Roastery · cream and burgundy
-Szałwia · techniczny minimalizm|Sage · technical minimalism
+Kawiarnia · szkło i karmel|Café · glass and caramel
 Soft · jasny relief|Soft · light relief
 Wielkość interfejsu|Interface size
 Standardowy|Standard

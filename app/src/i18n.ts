@@ -1,4 +1,6 @@
 import { messages } from './messages';
+// Polish is the source language. English is looked up phrase by phrase in messages.ts
+// (gettext style: the Polish phrase is the key; numbers stay dynamic).
 export const currentLanguage=()=>document.documentElement.lang==='en'?'en':'pl';
 const dictionary=new Map(messages.map(([pl,en])=>[pl.toLocaleLowerCase('pl'),en]));
 const escape=(s:string)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -7,21 +9,28 @@ export function translate(text:string):string {
  if(currentLanguage()==='pl')return text;
  return text.replace(pattern,match=>{if(match==='I')return match;const result=dictionary.get(match.toLocaleLowerCase('pl'))||match;if(match.length>1&&match===match.toUpperCase()&&/[\p{L}]/u.test(match))return result.toUpperCase();return result;}).replace(/(\d),(\d)/g,'$1.$2');
 }
-// The existing engine owns stable DOM fragments. Localize text nodes and accessible
-// labels in place, without replacing controls, handlers, input values or timer state.
+/** For React: translate a Polish UI phrase for the current language. */
+export const t=translate;
+
+// The brewing engine writes its text through setText/setHTML/setAttr, which translate at write
+// time and remember the Polish source. A language switch re-renders the engine and re-applies
+// the remembered sources in its static fragments. No MutationObserver is involved.
+const textSource=new WeakMap<Text,string>();
+const attrSource=new WeakMap<Element,Map<string,string>>();
+const attrs=['aria-label','title','placeholder','aria-valuetext'];
+const skip=(n:Node)=>!!n.parentElement?.closest('script,style,#appLanguage');
+function localize(node:Node){
+ if(node instanceof Text){if(skip(node))return;const source=textSource.has(node)?textSource.get(node)!:node.data;textSource.set(node,source);const out=translate(source);if(node.data!==out)node.data=out;return;}
+ if(node instanceof Element){for(const name of attrs){const value=node.getAttribute(name);if(value===null)continue;let map=attrSource.get(node);if(!map)attrSource.set(node,map=new Map());const source=map.has(name)?map.get(name)!:value;map.set(name,source);const out=translate(source);if(value!==out)node.setAttribute(name,out);}}
+ for(const child of node.childNodes)localize(child);
+}
+export function setText(el:Node|null,value:unknown){if(!el)return;const source=String(value??'');el.textContent=translate(source);const node=el instanceof Text?el:el.firstChild;if(node instanceof Text)textSource.set(node,source);}
+export function setHTML(el:Element|null,html:unknown){if(!el)return;el.innerHTML=String(html??'');localize(el);}
+export function setAttr(el:Element|null,name:string,value:unknown){if(!el)return;const source=String(value??'');let map=attrSource.get(el);if(!map)attrSource.set(el,map=new Map());map.set(name,source);el.setAttribute(name,translate(source));}
+/** Localize the engine's static fragments now and after every language change. */
 export function startLocalization(){
- const root=document.getElementById('root')!;
- const texts=new WeakMap<Text,{source:string;rendered:string}>();
- const attrs=new WeakMap<Element,Map<string,{source:string;rendered:string}>>();
- const names=['aria-label','title','placeholder','aria-valuetext'];
- const localize=(node:Node)=>{
-  if(node instanceof Text){if(node.parentElement?.closest('script,style,#appLanguage'))return;const before=texts.get(node);const source=before&&node.data===before.rendered?before.source:node.data;const rendered=translate(source);if(node.data!==rendered)node.data=rendered;texts.set(node,{source,rendered});return;}
-  if(node instanceof Element){for(const name of names){const value=node.getAttribute(name);if(value===null)continue;let map=attrs.get(node);if(!map){map=new Map();attrs.set(node,map);}const before=map.get(name);const source=before&&value===before.rendered?before.source:value;const rendered=translate(source);if(value!==rendered)node.setAttribute(name,rendered);map.set(name,{source,rendered});}}
-  for(const child of node.childNodes)localize(child);
- };
- const observer=new MutationObserver(records=>{observer.disconnect();for(const record of records){if(record.type==='childList'){for(const child of record.addedNodes)localize(child);}else localize(record.target);}observe();});
- const observe=()=>observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:names});
- // Polish is the source language: skip the tree walk and the observer entirely.
- const refresh=()=>{observer.disconnect();if(currentLanguage()==='pl'&&!active)return;localize(root);active=currentLanguage()!=='pl';if(active)observe();};let active=false;refresh();window.addEventListener('crema:preferences',refresh);
- return ()=>{observer.disconnect();window.removeEventListener('crema:preferences',refresh);};
+ const roots=()=>document.querySelectorAll('.engine-panel');
+ const refresh=()=>{for(const r of roots())localize(r);};
+ refresh();window.addEventListener('crema:preferences',refresh);
+ return ()=>window.removeEventListener('crema:preferences',refresh);
 }

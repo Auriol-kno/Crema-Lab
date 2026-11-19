@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { translate } from './i18n';
+import { translate, t } from './i18n';
 const keys=['cremalab.iphone.v3','cremalab.iphone.v2','cremalab.theme','cremalab.preferences.v1'] as const;
 const methods=['espresso','aeropress','v60','french','turkish','moka'];
 function validData(raw: unknown): raw is Record<string,string|null> {
@@ -7,7 +7,7 @@ function validData(raw: unknown): raw is Record<string,string|null> {
  const values=raw as Record<string,unknown>;
  if(!keys.every(k=>values[k]===null || typeof values[k]==='string' || k==='cremalab.preferences.v1'&&values[k]===undefined))return false;
  if(values['cremalab.theme']!==null&&!['palarnia','cafe','bar','studio'].includes(String(values['cremalab.theme'])))return false;
- try { if(typeof values['cremalab.preferences.v1']==='string'){const p=JSON.parse(values['cremalab.preferences.v1']);if(!['palarnia','sage','soft'].includes(p.theme)||!['standard','compact'].includes(p.density)||!['pl','en'].includes(p.language)||p.mode!==undefined&&!['system','light','dark'].includes(p.mode))return false;} for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
+ try { if(typeof values['cremalab.preferences.v1']==='string'){const p=JSON.parse(values['cremalab.preferences.v1']);if(!['palarnia','bar','sage','soft'].includes(p.theme)||!['standard','compact'].includes(p.density)||!['pl','en'].includes(p.language)||p.mode!==undefined&&!['system','light','dark'].includes(p.mode))return false;} for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
  // Imported history reaches the existing engine's HTML renderer: accept only
  // plain text and bounded numeric values, never markup or invalid ratings.
  const safe=(v:unknown):boolean=>typeof v==='string'?!/[<>]/.test(v):typeof v==='number'?Number.isFinite(v):v===null||typeof v==='boolean'||(typeof v==='object'&&Object.values(v).every(safe));
@@ -23,5 +23,5 @@ export function Backup(){
  async function restore(file?:File){if(!file)return;try{if(file.size>1_000_000)throw Error();const backup=JSON.parse(await file.text());if(backup.app!=='Crema Lab'||backup.version!==1||!validData(backup.data))throw Error();if(!window.confirm(translate('Zastąpić ustawienia i historię danymi z kopii? Bieżące parzenie zostanie zakończone.')))return;
  const before=keys.map(k=>[k,localStorage.getItem(k)] as const);try{keys.forEach(k=>{if(k==='cremalab.preferences.v1'&&backup.data[k]===undefined)return;backup.data[k]===null?localStorage.removeItem(k):localStorage.setItem(k,backup.data[k]);});}catch(error){before.forEach(([k,v])=>v===null?localStorage.removeItem(k):localStorage.setItem(k,v));throw error;}location.reload();
  }catch{setMessage('Nie można wczytać kopii. Wybierz poprawny plik Crema Lab.');}finally{if(input.current)input.current.value='';}}
- return <details className="details-card backup" id="backupCard"><summary>Kopia Twoich danych <span>↓</span></summary><p className="subtle">Zapisz historię, kalibrację i ustawienia do pliku. Możesz przenieść je na inne urządzenie.</p><div className="backup-actions"><button onClick={download}>Eksportuj kopię</button><button onClick={()=>input.current?.click()}>Wczytaj kopię</button></div><input ref={input} type="file" accept="application/json,.json" hidden onChange={e=>void restore(e.target.files?.[0])}/><p role="status" className="subtle">{message}</p></details>
+ return <details className="details-card backup" id="backupCard"><summary>{t('Kopia Twoich danych')} <span>↓</span></summary><p className="subtle">{t('Zapisz historię, kalibrację i ustawienia do pliku. Możesz przenieść je na inne urządzenie.')}</p><div className="backup-actions"><button onClick={download}>{t('Eksportuj kopię')}</button><button onClick={()=>input.current?.click()}>{t('Wczytaj kopię')}</button></div><input ref={input} type="file" accept="application/json,.json" hidden onChange={e=>void restore(e.target.files?.[0])}/><p role="status" className="subtle">{message&&t(message)}</p></details>
 }

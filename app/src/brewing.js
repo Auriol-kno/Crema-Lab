@@ -1,4 +1,4 @@
-import { translate, currentLanguage } from './i18n';
+import { translate, currentLanguage, setText, setHTML, setAttr } from './i18n';
 import { M, ORDER, DEF } from './recipes';
 const HIST_MAX=30;
 import { advise as adviseCore, TASTES, BODIES, tasteOf } from './advice';
@@ -64,7 +64,7 @@ const gtxt=g=>gr(g).toFixed(1).replace('.',currentLanguage()==='en'?'.':',');
 const grindName=g=>{const z=ZONES.filter(z=>g>=z.a&&g<=z.b).map(z=>z.n.toLowerCase()); return z.length?z.join(' / '):(g<2?'bardzo drobno':'pomiędzy strefami');};
 const kParts=g=>{const t=Math.round(g*10); return Math.floor(t/10)+' + '+(t%10)+' klik.';};
 const mname=k=>M[k].short||M[k].name;
-function toast(t){const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast.h); toast.h=setTimeout(()=>e.classList.remove('on'),1600);}
+function toast(t){const e=$('toast'); setText(e,t); e.classList.add('on'); clearTimeout(toast.h); toast.h=setTimeout(()=>e.classList.remove('on'),1600);}
 
 /* static gauge ticks */
 (function(){
@@ -73,8 +73,8 @@ function toast(t){const e=$('toast'); e.textContent=t; e.classList.add('on'); cl
     const a=(135+22.5*i)*Math.PI/180;
     h+='<line x1="'+(150+100*Math.cos(a)).toFixed(1)+'" y1="'+(150+100*Math.sin(a)).toFixed(1)+'" x2="'+(150+112*Math.cos(a)).toFixed(1)+'" y2="'+(150+112*Math.sin(a)).toFixed(1)+'"/>';
   }
-  $('gTicks').innerHTML=h;
-  $('znums').innerHTML=Array.from({length:11},(_,i)=>'<span style="left:'+(i*10)+'%">'+i+'</span>').join('');
+  setHTML($('gTicks'),h);
+  setHTML($('znums'),Array.from({length:11},(_,i)=>'<span style="left:'+(i*10)+'%">'+i+'</span>').join(''));
 })();
 const LABEL_POS=[[66,264],[76,121],[150,70],[224,121],[234,264]];
 
@@ -137,7 +137,7 @@ function model(){
 /* ---------- builders ---------- */
 function buildPresets(){
   const m=M[S.method], pi=S.pidx[S.method];
-  $('presets').innerHTML=m.presets.map((x,i)=>'<button type="button" data-i="'+i+'" aria-pressed="'+(i===pi)+'"><span>'+x.n+'</span><small>'+(x.sl||('1:'+num(x.r)))+'</small></button>').join('');
+  setHTML($('presets'),m.presets.map((x,i)=>'<button type="button" data-i="'+i+'" aria-pressed="'+(i===pi)+'"><span>'+x.n+'</span><small>'+(x.sl||('1:'+num(x.r)))+'</small></button>').join(''));
 }
 /* ---------- grinder ---------- */
 const G=()=>(S.grinder==='lelit'&&S.method==='espresso')?'lelit':'kpro';
@@ -157,16 +157,16 @@ function lelitUpdate(){
     h+= v%1===0?'<span style="left:'+x+'">'+Math.round(vv)+'</span>':'<span class="half" style="left:'+x+'"></span>';
   }
   h+='<em style="left:8px">◄ '+(S.lelit.fineLower?'FINE':'COARSE')+'</em><em style="right:8px">'+(S.lelit.fineLower?'COARSE':'FINE')+' ►</em><i></i>';
-  $('ldial').innerHTML=h;
-  $('lread').innerHTML='Pokrętło na <b style="color:var(--accent)">'+f1(L.dial)+'</b> przy znaczniku ▲ · czas <b style="color:var(--accent)">'+f1(L.time)+' s</b>';
-  $('lTimeOut').textContent=f1(L.time)+' s';
-  $('lTimeHint').textContent='≈ '+num(r1(est))+' g';
-  $('lMatch').innerHTML=Math.abs(est-p.dose)>0.4
+  setHTML($('ldial'),h);
+  setHTML($('lread'),'Pokrętło na <b style="color:var(--accent)">'+f1(L.dial)+'</b> przy znaczniku ▲ · czas <b style="color:var(--accent)">'+f1(L.time)+' s</b>');
+  setText($('lTimeOut'),f1(L.time)+' s');
+  setText($('lTimeHint'),'≈ '+num(r1(est))+' g');
+  setHTML($('lMatch'),Math.abs(est-p.dose)>0.4
     ? 'Młynek da ≈ '+num(r1(est))+' g, a dawka to '+num(p.dose)+' g.<button type="button" id="lFit">Ustaw '+num(need)+' s</button>'
-    : '<span style="color:var(--good)">✓ Czas pasuje do dawki '+num(p.dose)+' g</span>';
-  $('lRateTxt').textContent='Wydajność: '+L.rate.toFixed(2).replace('.',currentLanguage()==='en'?'.':',')+' g/s'+(L.rate===2.5?' (wartość producenta, skalibruj na swojej kawie)':' (Twoja kalibracja)');
+    : '<span style="color:var(--good)">✓ Czas pasuje do dawki '+num(p.dose)+' g</span>');
+  setText($('lRateTxt'),'Wydajność: '+L.rate.toFixed(2).replace('.',currentLanguage()==='en'?'.':',')+' g/s'+(L.rate===2.5?' (wartość producenta, skalibruj na swojej kawie)':' (Twoja kalibracja)'));
   $('lDirSw').setAttribute('aria-checked',S.lelit.fineLower?'true':'false');
-  $('lDirTxt').textContent=S.lelit.fineLower?'maleje (np. 5,5 → 5)':'rośnie (np. 5,5 → 6)';
+  setText($('lDirTxt'),S.lelit.fineLower?'maleje (np. 5,5 → 5)':'rośnie (np. 5,5 → 6)');
 }
 function grinderUi(){
   const g=G();
@@ -185,11 +185,11 @@ function sliderDefs(){
 }
 function buildSliders(){
   const p=S.params[S.method];
-  $('sliders').innerHTML=sliderDefs().map(d=>
+  setHTML($('sliders'),sliderDefs().map(d=>
     '<div class="sl"><div class="sl-head"><span id="lab-'+d.k+'">'+d.label+'</span><output id="out-'+d.k+'"></output></div>'
     +'<input type="range" id="sl-'+d.k+'" data-k="'+d.k+'" min="'+d.r[0]+'" max="'+d.r[1]+'" step="'+d.r[2]+'" value="'+p[d.k]+'" aria-labelledby="lab-'+d.k+'">'
     +'<div class="sl-foot"><span>'+d.lo+'</span><span id="hint-'+d.k+'"></span><span>'+d.hi+'</span></div></div>').join('')
-    +(S.method==='espresso'?'<p class="g-note pid-note">Temperaturę espresso (PID) ustawiasz w zakładce Lelit Anna.</p>':'');
+    +(S.method==='espresso'?'<p class="g-note pid-note">Temperaturę espresso (PID) ustawiasz w zakładce Lelit Anna.</p>':''));
 }
 const SCENES={espresso:'sEspresso',aeropress:'sAero',v60:'sV60',french:'sFrench',turkish:'sTurkish',moka:'sMoka'};
 function buildAll(){
@@ -247,7 +247,7 @@ function sceneUpdate(d){
     const f=ease((el-d.flow)/(d.w0-d.flow))*.92+ease((el-d.w0)/(d.w1-d.w0))*.06, h=f*40;
     $('mLiq').setAttribute('y',(106-h).toFixed(1)); $('mLiq').setAttribute('height',h.toFixed(1));
     show('mFount',run&&el>d.flow-2&&el<d.w1+10);
-    const heatOn=run&&el<d.w0; $('mHob').style.opacity=heatOn?(el<d.flow?1:.6):.12; $('mHobLv').textContent=heatOn?(el<d.flow?'5':'3'):'0'; $('mHob').classList.toggle('on',heatOn);
+    const heatOn=run&&el<d.w0; $('mHob').style.opacity=heatOn?(el<d.flow?1:.6):.12; setText($('mHobLv'),heatOn?(el<d.flow?'5':'3'):'0'); $('mHob').classList.toggle('on',heatOn);
     label=el<d.flow?'NA PŁYCIE INDUKCYJNEJ':el<d.w0?'KAWA PŁYNIE':el<d.w1?'ZDEJMIJ Z PŁYTY':'SCHŁÓDŹ DÓŁ';
     right=Math.round(d.water*f)+' / '+d.water+' ml';
   }else{
@@ -264,13 +264,13 @@ function sceneUpdate(d){
   steam.classList.toggle('on',sOn);
   const sy={espresso:0,aeropress:-2,v60:-6,french:-74,turkish:-26,moka:-62}[k];
   steam.setAttribute('transform','translate(0,'+sy+')');
-  $('sceneL').textContent=label; $('sceneR').textContent=right;
-  { const L=label.toLowerCase(); const nl=L.charAt(0).toUpperCase()+L.slice(1); if($('stL').textContent!==nl) $('stL').textContent=nl; $('stV').textContent=right; }
+  setText($('sceneL'),label); setText($('sceneR'),right);
+  { const L=label.toLowerCase(); const nl=L.charAt(0).toUpperCase()+L.slice(1); if($('stL').textContent!==nl) setText($('stL'),nl); setText($('stV'),right); }
   /* extraction */
   const ey=eyAt(d), zc=ey<=0?'var(--muted)':ey<18?'var(--cool)':ey<=22?'var(--good)':'var(--bad)';
   const zt=ey<=0?'—':ey<18?'ZA MAŁO':ey<=22?'IDEALNIE':'ZA DUŻO';
-  $('eyVal').textContent=Math.round(ey)+'%'; $('eyZone').textContent=zt; $('eyZone').style.color=zc;
-  $('stE').textContent='≈ '+Math.round(ey)+'%'; $('stZ').textContent=ey<=0?'':'· '+zt.toLowerCase(); $('stZ').style.color=zc;
+  setText($('eyVal'),Math.round(ey)+'%'); setText($('eyZone'),zt); $('eyZone').style.color=zc;
+  setText($('stE'),'≈ '+Math.round(ey)+'%'); setText($('stZ'),ey<=0?'':'· '+zt.toLowerCase()); $('stZ').style.color=zc;
   const eh=ey/28*144; $('eyFill').setAttribute('y',(162-eh+ (eh>0?0:0)).toFixed(1)); $('eyFill').setAttribute('height',Math.max(0,eh-2).toFixed(1));
   $('eyTick').setAttribute('y1',(164-eh).toFixed(1)); $('eyTick').setAttribute('y2',(164-eh).toFixed(1));
   const sc=cScale(STREAM,ey), bc=cScale(BREW,ey);
@@ -286,7 +286,7 @@ function sceneUpdate(d){
     return '<div class="seg '+st+'" style="left:calc('+(a/tm*100).toFixed(2)+'% + 1px);width:calc('+((b-a)/tm*100).toFixed(2)+'% - 2px)"></div>';}).join('')
     +'<div class="win" style="left:'+(d.w0/tm*100).toFixed(2)+'%;width:'+((Math.min(d.w1,tm)-d.w0)/tm*100).toFixed(2)+'%"></div>';
   const tlEl=$('tl');
-  if(tlEl.dataset.v!==segs){tlEl.innerHTML=segs+'<div class="mark" id="tlMark"></div>'; tlEl.dataset.v=segs;}
+  if(tlEl.dataset.v!==segs){setHTML(tlEl,segs+'<div class="mark" id="tlMark"></div>'); tlEl.dataset.v=segs;}
   $('tlMark').style.left=pct(el/tm);
 }
 function hex2(h){const n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255];}
@@ -324,24 +324,24 @@ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: redu
 function update(){
   notify({ running:run, method:M[S.method].name, seconds:el });
   const d=model(), p=d.p, m=d.m, g=d.g;
-  $('chip').textContent=mname(d.k).toUpperCase()+' · 1:'+num(p.ratio);
+  setText($('chip'),mname(d.k).toUpperCase()+' · 1:'+num(p.ratio));
   if(!$('guide').hidden&&GID()==='brew') guideLive(d);
-  $('stepsTitle').textContent='KROKI · '+m.name.toUpperCase();
-  $('unit').textContent=g.unit; $('gShort').textContent=g.short;
+  setText($('stepsTitle'),'KROKI · '+m.name.toUpperCase());
+  setText($('unit'),g.unit); setText($('gShort'),g.short);
   const lab=g.labels.map((t,i)=>'<text x="'+LABEL_POS[i][0]+'" y="'+LABEL_POS[i][1]+'">'+t+'</text>').join('');
-  if($('gLabels').dataset.v!==lab){$('gLabels').innerHTML=lab; $('gLabels').dataset.v=lab;}
+  if($('gLabels').dataset.v!==lab){setHTML($('gLabels'),lab); $('gLabels').dataset.v=lab;}
   const frac=clamp(g.val/g.max,0,1), ang=(135+270*frac)*Math.PI/180;
   $('gBand').setAttribute('stroke-dasharray','0 '+(g.band[0]/g.max*L).toFixed(1)+' '+((g.band[1]-g.band[0])/g.max*L).toFixed(1)+' 2000');
   $('gProg').setAttribute('stroke-dasharray',(frac*L).toFixed(1)+' 2000');
   $('gNeedle').setAttribute('x2',(150+95*Math.cos(ang)).toFixed(1));
   $('gNeedle').setAttribute('y2',(150+95*Math.sin(ang)).toFixed(1));
-  $('gaugeSvg').setAttribute('aria-label','Wskaźnik: '+num(g.val)+' z '+g.max);
-  $('tMain').innerHTML=d.isE?num(Math.floor(el*10)/10)+'<span>s</span>':mss(el);
-  $('tSub').textContent=g.sub;
+  setAttr($('gaugeSvg'),'aria-label','Wskaźnik: '+num(g.val)+' z '+g.max);
+  setHTML($('tMain'),d.isE?num(Math.floor(el*10)/10)+'<span>s</span>':mss(el));
+  setText($('tSub'),g.sub);
 
   const tm=m.tmax;
   const tl=x=>d.isE?String(Math.round(x))+(x===tm?' s':''):mss(x);
-  $('bTicks').innerHTML=[0,tm/3,tm*2/3,tm].map(x=>'<span>'+tl(x)+'</span>').join('');
+  setHTML($('bTicks'),[0,tm/3,tm*2/3,tm].map(x=>'<span>'+tl(x)+'</span>').join(''));
 
   const idle=el===0&&!run; let ph,col;
   if(idle){ph='GOTOWY'; col='var(--muted)';}
@@ -357,60 +357,60 @@ function update(){
     else if(d.isE) nice='Parzenie';
     else {const c=d.steps.find(x=>el>=x.a&&el<x.b)||d.steps[0]; nice=c.l;}
     if(!run&&el>0) nice+=' · pauza';
-    if($('bPh').textContent!==nice) $('bPh').textContent=nice;
+    if($('bPh').textContent!==nice) setText($('bPh'),nice);
     $('bDot').style.background=idle?'var(--muted)':col==='var(--accent)'?'var(--good)':col;
-    $('bTime').textContent=d.isE?(Math.floor(el*10)/10).toFixed(1).replace('.',currentLanguage()==='en'?'.':','):mss(el); $('bTimeU').textContent=d.isE?'s':'min';
+    setText($('bTime'),d.isE?(Math.floor(el*10)/10).toFixed(1).replace('.',currentLanguage()==='en'?'.':','):mss(el)); setText($('bTimeU'),d.isE?'s':'min');
     $('brewProgress').style.setProperty('--progress',pct(el/d.w1));
     $('brewProgress').setAttribute('aria-valuenow',String(Math.round(clamp(el/d.w1,0,1)*100)));
-    $('brewProgress').setAttribute('aria-valuetext',Math.round(clamp(el/d.w1,0,1)*100)+'% czasu docelowego');
-    $('bTarget').textContent={espresso:'Cel '+d.w0+'–'+d.w1+' s',aeropress:'Prasowanie od '+mss(d.w0),v60:'Spływanie do '+mss(d.w1),french:'Tłok o '+mss(d.w0),turkish:'Zdejmij do '+mss(d.w1),moka:'Zdejmij ok. '+mss(d.w0)}[d.k];
+    setAttr($('brewProgress'),'aria-valuetext',Math.round(clamp(el/d.w1,0,1)*100)+'% czasu docelowego');
+    setText($('bTarget'),{espresso:'Cel '+d.w0+'–'+d.w1+' s',aeropress:'Prasowanie od '+mss(d.w0),v60:'Spływanie do '+mss(d.w1),french:'Tłok o '+mss(d.w0),turkish:'Zdejmij do '+mss(d.w1),moka:'Zdejmij ok. '+mss(d.w0)}[d.k]);
     let gv,gmax,gb,lbl,val,unit;
     if(d.isE){gv=g.val; gmax=16; gb=[8,12]; lbl='Symulacja ciśnienia'; val=g.val.toFixed(1).replace('.',currentLanguage()==='en'?'.':','); unit='bar';}
     else if(d.k==='v60'){gv=g.val; gmax=g.max; gb=[g.max*.95,g.max]; lbl='Woda w dripperze'; val=String(Math.round(g.val)); unit='g';}
     else {gv=el; gmax=d.w1; gb=[d.w0,d.w1]; lbl=el<d.w0?'Do kolejnego kroku':'Okno'; val=mss(Math.max(0,(el<d.w0?d.w0:d.w1)-el)); unit='';}
-    $('bLbl').textContent=lbl; $('bVal').textContent=val; $('bUnit').textContent=unit;
+    setText($('bLbl'),lbl); setText($('bVal'),val); setText($('bUnit'),unit);
     const P=v=>{const a=Math.PI*(1-clamp(v/gmax,0,1)); return [70+52*Math.cos(a),72-52*Math.sin(a)];};
     const pa=P(gb[0]), pb=P(gb[1]);
     $('bBand').setAttribute('d','M'+pa[0].toFixed(1)+' '+pa[1].toFixed(1)+' A52 52 0 0 1 '+pb[0].toFixed(1)+' '+pb[1].toFixed(1));
     const na=Math.PI*(1-clamp(gv/gmax,0,1)); $('bNeedle').setAttribute('x2',(70+44*Math.cos(na)).toFixed(1)); $('bNeedle').setAttribute('y2',(72-44*Math.sin(na)).toFixed(1));
   }
   const phEl=$('phase'); phEl.style.color=col;
-  if(phEl.lastChild.textContent!==ph) phEl.lastChild.textContent=ph;
+  if(phEl.lastChild.textContent!==ph) setText(phEl.lastChild,ph);
 
   const mb=$('mainBtn'); const lbl=run?'STOP':el>0?'WZNÓW':'START';
   if(mb.dataset.l!==lbl){
     mb.dataset.l=lbl; mb.classList.toggle('run',run);
-    mb.innerHTML=(run?'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>':'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z"/></svg>')+lbl;
+    setHTML(mb,(run?'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>':'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z"/></svg>')+lbl);
   }
 
-  $('tDose').innerHTML=num(p.dose)+'<span> g</span>';
-  $('tWaterK').textContent=d.isE?'CEL NAPARU':(d.k==='turkish'||d.k==='moka')?'WODA (ML)':'WODA';
-  $('tWater').innerHTML=num(d.water)+'<span> '+((d.k==='turkish'||d.k==='moka')?'ml':'g')+'</span>';
-  $('tTemp').innerHTML=m.temp?p.temp+'<span> °C</span>':'ZIMNA'; $('tTempK').textContent=d.isE?'PID':'TEMP.';
+  setHTML($('tDose'),num(p.dose)+'<span> g</span>');
+  setText($('tWaterK'),d.isE?'CEL NAPARU':(d.k==='turkish'||d.k==='moka')?'WODA (ML)':'WODA');
+  setHTML($('tWater'),num(d.water)+'<span> '+((d.k==='turkish'||d.k==='moka')?'ml':'g')+'</span>');
+  setHTML($('tTemp'),m.temp?p.temp+'<span> °C</span>':'ZIMNA'); setText($('tTempK'),d.isE?'PID':'TEMP.');
 
   sliderDefs().forEach(sd=>{
     const inp=$('sl-'+sd.k); if(!inp) return;
     inp.style.setProperty('--p',((p[sd.k]-sd.r[0])/(sd.r[1]-sd.r[0])*100)+'%');
   });
-  $('out-dose').textContent=num(p.dose)+' g';
-  $('out-ratio').textContent='1:'+num(p.ratio);
-  $('hint-ratio').textContent=(d.isE?'napój ':'woda ')+num(d.water)+((d.k==='turkish'||d.k==='moka')?' ml':' g');
-  if($('out-temp')) $('out-temp').textContent=p.temp+' °C';
-  if($('out-grind')){$('out-grind').textContent=gtxt(p.grind);
-  $('hint-grind').textContent='zalecane '+gtxt(m.zone[0])+'–'+gtxt(m.zone[1]);}
+  setText($('out-dose'),num(p.dose)+' g');
+  setText($('out-ratio'),'1:'+num(p.ratio));
+  setText($('hint-ratio'),(d.isE?'napój ':'woda ')+num(d.water)+((d.k==='turkish'||d.k==='moka')?' ml':' g'));
+  if($('out-temp')) setText($('out-temp'),p.temp+' °C');
+  if($('out-grind')){setText($('out-grind'),gtxt(p.grind));
+  setText($('hint-grind'),'zalecane '+gtxt(m.zone[0])+'–'+gtxt(m.zone[1]));}
   const inZ=p.grind>=m.zone[0]&&p.grind<=m.zone[1];
   const kr='Ustaw <b style="color:var(--accent)">'+gtxt(p.grind)+'</b> ('+kParts(p.grind)+') · '+grindName(p.grind)+(inZ?'':' · <span style="color:var(--bad)">poza strefą '+mname(d.k)+'</span>');
-  if($('kread').dataset.v!==kr){$('kread').innerHTML=kr; $('kread').dataset.v=kr;
-    $('zones').innerHTML=ZONES.map(z=>'<div class="zone'+(z.m===S.method||z.m2===S.method?' on':'')+'" style="left:'+(z.a*10)+'%;width:calc('+((z.b-z.a)*10)+'% - 2px);top:'+(z.lane?23:2)+'px;background:'+z.c+'">'+z.n+'</div>').join('')
-      +'<div class="zmark" style="left:'+(p.grind*10)+'%"></div>';}
+  if($('kread').dataset.v!==kr){setHTML($('kread'),kr); $('kread').dataset.v=kr;
+    setHTML($('zones'),ZONES.map(z=>'<div class="zone'+(z.m===S.method||z.m2===S.method?' on':'')+'" style="left:'+(z.a*10)+'%;width:calc('+((z.b-z.a)*10)+'% - 2px);top:'+(z.lane?23:2)+'px;background:'+z.c+'">'+z.n+'</div>').join('')
+      +'<div class="zmark" style="left:'+(p.grind*10)+'%"></div>');}
   $('preSw').setAttribute('aria-checked',S.pre?'true':'false');
 
   const sh=d.steps.map(x=>{
     const done=!idle&&el>=x.b, act=!idle&&el>=x.a&&el<x.b;
     return '<div class="step'+(act?' active':done?' done':'')+'"><i></i><em>'+(d.isE?x.a+' s':mss(x.a))+'</em><span>'+x.l+'</span></div>';
   }).join('');
-  if($('steps').dataset.v!==sh){$('steps').innerHTML=sh; $('steps').dataset.v=sh;}
-  $('tip').textContent=d.tip;
+  if($('steps').dataset.v!==sh){setHTML($('steps'),sh); $('steps').dataset.v=sh;}
+  setText($('tip'),d.tip);
   sceneUpdate(d);
   checkAlerts(d);
 }
@@ -421,16 +421,16 @@ function currentAdvice(){
   return advise(S.method,S.params[S.method],S.pidx[S.method],R.taste,R.body||'ok',el>0?el:null,R.stars,{type:G(),lelit:S.lelit});
 }
 function renderRating(){
-  $('stars').innerHTML=[1,2,3,4,5].map(i=>'<button type="button" data-s="'+i+'" class="'+(i<=R.stars?'on':'')+'" aria-label="'+i+' z 5" aria-pressed="'+(i<=R.stars)+'"><svg><use href="#i-star"/></svg></button>').join('');
-  $('tasteChips').innerHTML=TASTES.map(t=>'<button type="button" data-t="'+t.k+'" aria-pressed="'+(R.taste===t.k)+'">'+t.l+'</button>').join('');
-  $('bodyChips').innerHTML=BODIES.map(b=>'<button type="button" data-b="'+b.k+'" aria-pressed="'+(R.body===b.k)+'">'+b.l+'</button>').join('');
+  setHTML($('stars'),[1,2,3,4,5].map(i=>'<button type="button" data-s="'+i+'" class="'+(i<=R.stars?'on':'')+'" aria-label="'+i+' z 5" aria-pressed="'+(i<=R.stars)+'"><svg><use href="#i-star"/></svg></button>').join(''));
+  setHTML($('tasteChips'),TASTES.map(t=>'<button type="button" data-t="'+t.k+'" aria-pressed="'+(R.taste===t.k)+'">'+t.l+'</button>').join(''));
+  setHTML($('bodyChips'),BODIES.map(b=>'<button type="button" data-b="'+b.k+'" aria-pressed="'+(R.body===b.k)+'">'+b.l+'</button>').join(''));
   const p=S.params[S.method], pr=M[S.method].presets[S.pidx[S.method]];
-  $('brewInfo').textContent=mname(S.method)+' · '+pr.n+(el>0?' · '+(S.method==='espresso'?num(el)+' s':mss(el)):'');
+  setText($('brewInfo'),mname(S.method)+' · '+pr.n+(el>0?' · '+(S.method==='espresso'?num(el)+' s':mss(el)):''));
   const a=currentAdvice();
   $('advBox').hidden=!a; $('advHint').hidden=!!a;
   if(a){
-    $('verdict').textContent=a.verdict; $('verdict').dataset.z=a.z;
-    $('advice').innerHTML=a.rows.map(r=>'<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>').join('');
+    setText($('verdict'),a.verdict); $('verdict').dataset.z=a.z;
+    setHTML($('advice'),a.rows.map(r=>'<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>').join(''));
   }
   $('applyBtn').disabled=!(a&&Object.keys(a.delta).length);
   $('saveBtn').disabled=!(R.stars&&R.taste);
@@ -460,9 +460,9 @@ $('saveBtn').addEventListener('click',()=>{
 /* ---------- history ---------- */
 function renderHist(){
   $('clearHist').hidden=!S.hist.length;
-  $('histCount').textContent=S.hist.length?S.hist.length+' / '+HIST_MAX:'';
-  if(!S.hist.length){$('hist').innerHTML='<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.</p>'; return;}
-  $('hist').innerHTML=S.hist.map((h,i)=>{
+  setText($('histCount'),S.hist.length?S.hist.length+' / '+HIST_MAX:'');
+  if(!S.hist.length){setHTML($('hist'),'<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.</p>'); return;}
+  setHTML($('hist'),S.hist.map((h,i)=>{
     const m=M[h.method], pr=m.presets[h.preset]||m.presets[0];
     let when=''; try{when=new Date(h.ts).toLocaleString(currentLanguage()==='en'?'en-GB':'pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
     const t=tasteOf(h.taste)||TASTES[2], b=BODIES.find(x=>x.k===h.body)||BODIES[1];
@@ -477,7 +477,7 @@ function renderHist(){
       +(adv?'<div class="h-adv"><b>'+(ai>0?adv.slice(0,ai):'')+'</b>'+(ai>0?': '+adv.slice(ai+2):adv)+'</div>':'')
       +'<div class="h-act"><button type="button" data-load="'+i+'">Użyj tych ustawień</button>'
       +(h.delta&&Object.keys(h.delta).length?'<button type="button" data-next="'+i+'">Użyj z poprawkami</button>':'')+'<button type="button" class="h-del" data-del="'+i+'" aria-label="Usuń ten wpis">Usuń</button></div></div>';
-  }).join('');
+  }).join(''));
 }
 $('hist').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
@@ -513,7 +513,7 @@ $('presets').addEventListener('click',e=>{
 });
 $('sliders').addEventListener('input',e=>{
   const t=e.target; if(!t.dataset.k) return;
-  if(t.dataset.k==='temp'&&S.method==='espresso') setTimeout(()=>{$('pidVal').textContent=S.params.espresso.temp;},0);
+  if(t.dataset.k==='temp'&&S.method==='espresso') setTimeout(()=>{setText($('pidVal'),S.params.espresso.temp);},0);
   S.params[S.method][t.dataset.k]=t.dataset.k==='grind'?gr(parseFloat(t.value)):parseFloat(t.value); persist(); update(); if(R.taste) renderRating();
 });
 function klik(dl){const P=S.params[S.method]; P.grind=clamp(gr(P.grind+dl),0,10); const r=$('sl-grind'); if(r) r.value=P.grind; persist(); update(); if(R.taste) renderRating();}
@@ -574,7 +574,7 @@ function fire(ev){
     tint(ev.k);
     if(ev.k!=='step'){
       const f=$('flash'); f.dataset.k=ev.k; f.style.setProperty('--fc',KCOL[ev.k]);
-      $('flSub').textContent=ev.sub||''; $('flMain').textContent=ev.main; $('flHint').textContent=ev.hint||''; f.hidden=false;
+      setText($('flSub'),ev.sub||''); setText($('flMain'),ev.main); setText($('flHint'),ev.hint||''); f.hidden=false;
       clearTimeout(flashT); flashT=setTimeout(()=>{f.hidden=true;},ev.k==='near'?2500:ev.k==='over'?6000:4500);
     }
   }
@@ -661,7 +661,7 @@ function warmUi(){
   if(!w.on) h='<div class="wi"><b>Rozgrzewanie</b><span>Grupa i kolba grzeją się ok. '+WARM_MIN+' min. Kolba wpięta.</span></div><button type="button" id="warmGo">Włączyłem ekspres</button>';
   else if(!w.ready) h='<div class="wi"><b>Rozgrzewa się…</b><span>Gotowy za</span><div class="wbar"><i style="width:'+(w.sec/(WARM_MIN*60)*100).toFixed(1)+'%"></i></div></div><span class="wt">'+mss(w.left)+'</span><button type="button" class="ghost" id="warmOff" aria-label="Wyłącz licznik rozgrzewania">✕</button>';
   else h='<div class="wi"><b style="color:var(--good)">Ekspres gotowy ✓</b><span>Nagrzany od '+mss(-w.left)+'. Przepłucz grupę 2–3 s przed shotem.</span></div><button type="button" class="ghost" id="warmOff">Wyłączyłem</button>';
-  if(box.dataset.v!==h){box.innerHTML=h; box.dataset.v=h;}
+  if(box.dataset.v!==h){setHTML(box,h); box.dataset.v=h;}
 }
 $('warmBox').addEventListener('click',e=>{
   if(e.target.id==='warmGo'){S.warm=Date.now(); persist(); warmUi(); toast('Licznik rozgrzewania: '+WARM_MIN+' min');}
@@ -687,13 +687,13 @@ function milkSteps(){
 function annaUi(){
   $('annaCard').hidden=S.method!=='espresso';
   warmUi();
-  $('pidVal').textContent=S.params.espresso.temp;
-  $('roastChips').innerHTML=Object.keys(ROAST).map(k=>'<button type="button" data-r="'+k+'" aria-pressed="'+(S.roast===k&&ROAST[k].pid===S.params.espresso.temp)+'">'+ROAST[k].n+' · '+ROAST[k].pid+' °C</button>').join('');
-  $('milkChips').innerHTML=Object.keys(MILK).map(k=>'<button type="button" data-mk="'+k+'" aria-pressed="'+(S.milk===k)+'">'+MILK[k].n+(MILK[k].ml?' · '+MILK[k].ml+' ml':'')+'</button>').join('');
+  setText($('pidVal'),S.params.espresso.temp);
+  setHTML($('roastChips'),Object.keys(ROAST).map(k=>'<button type="button" data-r="'+k+'" aria-pressed="'+(S.roast===k&&ROAST[k].pid===S.params.espresso.temp)+'">'+ROAST[k].n+' · '+ROAST[k].pid+' °C</button>').join(''));
+  setHTML($('milkChips'),Object.keys(MILK).map(k=>'<button type="button" data-mk="'+k+'" aria-pressed="'+(S.milk===k)+'">'+MILK[k].n+(MILK[k].ml?' · '+MILK[k].ml+' ml':'')+'</button>').join(''));
   const ms=milkSteps();
-  $('milkSteps').innerHTML=ms?'<h4>SPIENIANIE NA ANNIE</h4><ol class="milkst">'+ms.steam.map((x,i)=>'<li><b class="n">'+(i+1)+'</b><span>'+x+'</span></li>').join('')+'</ol>'
+  setHTML($('milkSteps'),ms?'<h4>SPIENIANIE NA ANNIE</h4><ol class="milkst">'+ms.steam.map((x,i)=>'<li><b class="n">'+(i+1)+'</b><span>'+x+'</span></li>').join('')+'</ol>'
      +'<h4>POTEM UZUPEŁNIJ KOCIOŁ</h4><ol class="milkst">'+ms.refill.map((x,i)=>'<li><b class="n">'+(i+1)+'</b><span>'+x+'</span></li>').join('')+'</ol>'
-     +'<p class="g-note" style="margin-top:8px">Po parze kocioł jest przegrzany i ma mało wody. Uzupełnienie chroni grzałkę i schładza kocioł do temperatury kawy.</p>':'';
+     +'<p class="g-note" style="margin-top:8px">Po parze kocioł jest przegrzany i ma mało wody. Uzupełnienie chroni grzałkę i schładza kocioł do temperatury kawy.</p>':'');
   // static manometer: green 8-12 of 0-16 over 180°
   const arc=(a,b)=>{const p=v=>{const t=Math.PI*(1-v/16);return (60+48*Math.cos(t)).toFixed(1)+' '+(62-48*Math.sin(t)).toFixed(1);}; return 'M'+p(a)+' A48 48 0 0 1 '+p(b);};
   $('manoGreen').setAttribute('d',arc(8,12));
@@ -710,8 +710,8 @@ const MAINT=[
 ];
 function servUi(){
   const now=Date.now(), I=S.maint.items;
-  $('shotCount').textContent=S.maint.shots+' shotów · '+(S.maint.grams/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' kg';
-  $('serv').innerHTML=MAINT.map(it=>{
+  setText($('shotCount'),S.maint.shots+' shotów · '+(S.maint.grams/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' kg');
+  setHTML($('serv'),MAINT.map(it=>{
     const rec=I[it.k]; let frac, info;
     if(it.grams){const g=S.maint.grams-((rec&&rec.g)||0); frac=g/it.grams; info=(g/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' z 4 kg';}
     else{ if(!rec){frac=0; info='';} else {const dd=(now-rec.t)/864e5; frac=dd/it.days; info=Math.floor(dd)+' z '+it.days+' dni';}}
@@ -719,13 +719,13 @@ function servUi(){
     const col=st==='due'?'var(--bad)':st==='soon'?'var(--accent)':'var(--good)';
     return '<div class="sv '+st+'"><b>'+it.n+'</b><button type="button" data-mt="'+it.k+'">Zrobione</button><small>'+it.d+(info?' · '+info:'')+'</small>'
       +'<div class="bar2"><i style="width:'+Math.min(100,frac*100).toFixed(0)+'%;background:'+col+'"></i></div></div>';
-  }).join('');
+  }).join(''));
 }
 $('serv').addEventListener('click',e=>{const b=e.target.closest('button[data-mt]'); if(!b) return; S.maint.items[b.dataset.mt]={t:Date.now(),g:S.maint.grams}; persist(); servUi(); toast('Zapisano: '+MAINT.find(x=>x.k===b.dataset.mt).n);});
 function countShot(){
   if(S.method==='espresso'&&el>=15&&!shotCounted){shotCounted=true; S.maint.shots++; if(G()==='lelit') S.maint.grams+=S.params.espresso.dose; persist(); servUi();}
 }
-setInterval(()=>{ if(S.warm&&!$('annaCard').hidden) warmUi(); if(!$('guide').hidden&&GID()==='prep') { const w=$('gWarm'); if(w) w.innerHTML=warmLine(); } },1000);
+setInterval(()=>{ if(S.warm&&!$('annaCard').hidden) warmUi(); if(!$('guide').hidden&&GID()==='prep') { const w=$('gWarm'); if(w) setHTML(w,warmLine()); } },1000);
 function warmLine(){const w=warmState(); return !w.on?'Nie włączono licznika. Włącz ekspres i stuknij przycisk poniżej.':!w.ready?'Rozgrzewa się, gotowy za <b>'+mss(w.left)+'</b>':'<b style="color:var(--good)">Ekspres gotowy ✓</b>';}
 
 /* ---------- guide: Prowadź mnie ---------- */
@@ -801,22 +801,22 @@ function guideSteps(){
 }
 function guideLive(d){
   const tm=$('gT'); if(!tm) return;
-  tm.textContent=d.isE?num(Math.floor(el*10)/10):mss(el);
-  const ph=$('phase').lastChild.textContent; $('gPh').textContent=ph; $('gPh').style.color=$('phase').style.color;
-  const cur=d.steps.find(x=>el>=x.a&&el<x.b); $('gNow').textContent=cur?cur.l:(el>0?'Gotowe, zatrzymaj timer':'Naciśnij Start');
-  $('gRun').innerHTML=run?'STOP':el>0?'WZNÓW':'START'; $('gRun').classList.toggle('run',run);
+  setText(tm,d.isE?num(Math.floor(el*10)/10):mss(el));
+  const ph=$('phase').lastChild.textContent; setText($('gPh'),ph); $('gPh').style.color=$('phase').style.color;
+  const cur=d.steps.find(x=>el>=x.a&&el<x.b); setText($('gNow'),cur?cur.l:(el>0?'Gotowe, zatrzymaj timer':'Naciśnij Start'));
+  setHTML($('gRun'),run?'STOP':el>0?'WZNÓW':'START'); $('gRun').classList.toggle('run',run);
   const sh=d.steps.map((x,i)=>{const act=el>=x.a&&el<x.b&&(run||el>0), done=el>=x.b;
     return '<li style="'+(act?'border-color:var(--accent)':done?'opacity:.5':'')+'"><b class="n" style="'+(done?'background:var(--good)':'')+'">'+(i+1)+'</b><span><b style="font-family:var(--mono);font-weight:500">'+(d.isE?x.a+' s':mss(x.a))+'</b> · '+x.l+'</span></li>';}).join('');
-  if($('gSteps').dataset.v!==sh){$('gSteps').innerHTML=sh; $('gSteps').dataset.v=sh;}
+  if($('gSteps').dataset.v!==sh){setHTML($('gSteps'),sh); $('gSteps').dataset.v=sh;}
 }
 function renderGuide(){
   const st=guideSteps(), n=st.length; GI=clamp(GI,0,n-1);
-  $('gStepNo').textContent='KROK '+(GI+1)+' Z '+n;
-  $('gDots').innerHTML=st.map((_,i)=>'<i class="'+(i<=GI?'on':'')+'"></i>').join('');
-  $('gTitle').textContent=st[GI].t;
-  $('gBody').innerHTML=st[GI].h();
+  setText($('gStepNo'),'KROK '+(GI+1)+' Z '+n);
+  setHTML($('gDots'),st.map((_,i)=>'<i class="'+(i<=GI?'on':'')+'"></i>').join(''));
+  setText($('gTitle'),st[GI].t);
+  setHTML($('gBody'),st[GI].h());
   $('gBack').style.visibility=GI===0?'hidden':'visible';
-  $('gNext').textContent=GI===n-1?'OCEŃ KAWĘ':st[GI].id==='brew'?(el>0?'DALEJ':'POMIŃ'):'DALEJ';
+  setText($('gNext'),GI===n-1?'OCEŃ KAWĘ':st[GI].id==='brew'?(el>0?'DALEJ':'POMIŃ'):'DALEJ');
   if(st[GI].id==='brew') guideLive(model());
   $('guide').scrollTop=0;
 }
@@ -856,7 +856,7 @@ $('gBody').addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('guide').hidden) closeGuide(); });
 
-(function(){let h='';for(let i=0;i<=8;i++){const a=Math.PI*(1-i/8),c=Math.cos(a),n=Math.sin(a);h+='<line x1="'+(70+40*c).toFixed(1)+'" y1="'+(72-40*n).toFixed(1)+'" x2="'+(70+(i%2?44:46)*c).toFixed(1)+'" y2="'+(72-(i%2?44:46)*n).toFixed(1)+'"/>';}$('bTicksG').innerHTML=h;})();
+(function(){let h='';for(let i=0;i<=8;i++){const a=Math.PI*(1-i/8),c=Math.cos(a),n=Math.sin(a);h+='<line x1="'+(70+40*c).toFixed(1)+'" y1="'+(72-40*n).toFixed(1)+'" x2="'+(70+(i%2?44:46)*c).toFixed(1)+'" y2="'+(72-(i%2?44:46)*n).toFixed(1)+'"/>';}setHTML($('bTicksG'),h);})();
 window.addEventListener('crema:preferences',()=>{buildAll();renderHist();servUi();if(!$('guide').hidden)renderGuide();});
 alertsUi();
 buildAll(); renderHist(); servUi(); requestAnimationFrame(frame);

@@ -12,7 +12,7 @@ Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScrip
 Ustawienia zawierają niezależne wybory motywu, gęstości i języka:
 
 - **Palarnia:** domyślny krem i bordo, duże kontrolki.
-- **Szałwia:** jasne szałwiowe tło, cienkie obrysy i typografia techniczna inspirowana pierwszą referencją.
+- **Kawiarnia:** motyw pod ladę kawiarni. W dzień ciepła biel i karmel, w nocy espresso i jasny karmel. Ma matowe szklane karty, pływający pasek kart, zaokrąglone cyfry timera czytelne z odległości i duże przyciski w kształcie pigułek. START jest karmelowy, STOP w kolorze espresso. Dawny motyw Szałwia jest automatycznie zamieniany na Kawiarnię, także przy wczytywaniu starej kopii.
 - **Soft:** jasna szarość, zaokrąglenia i delikatny relief inspirowany drugą referencją, z czytelnymi stanami wyboru i fokusu.
 - **Tryb Systemowy / Dzień / Noc:** każdy z trzech motywów ma wersję jasną i ciemną; „Systemowy” podąża za ustawieniem iPhone'a i przełącza się na żywo.
 - **Standardowy / Kompaktowy:** kompaktowy zmniejsza tekst, odstępy, kafelki i licznik, zachowując główne cele dotykowe minimum 44 px.
@@ -46,10 +46,12 @@ Aplikacja działa offline (service worker, network-first dla strony, cache dla z
 - `app/src/App.tsx`: React, typowana nawigacja i niezależne widoki.
 - `app/src/Backup.tsx`: eksport/import danych z walidacją i potwierdzeniem zastąpienia.
 - `app/src/advice.ts`: czysta logika porad po ocenie (smak, ciało, czas → zmiana mielenia/proporcji/temperatury), testowana jednostkowo.
+- Style są w warstwach CSS (`@layer legacy, app, palarnia, appearance, mode, polish, overrides`): późniejsza warstwa wygrywa bez `!important`. `!important` zostało tylko na `[hidden]`, a `overrides.css` zbiera kilka deklaracji, które muszą wygrywać z każdym motywem. Usunięcie 534 `!important` sprawdzono porównaniem stylów wyliczonych przez przeglądarkę dla każdego elementu w 64 stanach (motywy × tryby × gęstości × ekrany). Różnica wyniosła zero.
+- `app/src/bar.css`: motyw Kawiarnia (dzień i noc).
 - `app/src/mode.css`, `polish.css`: palety nocne trzech motywów oraz dopracowania układu (przyklejony przycisk startu, dok sterowania, ocena gwiazdkami).
 - `app/src/recipes.ts`: typowane definicje metod i ustawienia początkowe.
 - `app/src/preferences.ts`: typowane, niezależne preferencje wyglądu, gęstości i języka.
-- `app/src/i18n.ts`, `messages.ts`: lokalizacja tekstu i etykiet dostępności na granicy DOM istniejącego silnika; nie zastępuje kontrolek ani ich zdarzeń. Oryginalne polskie dane historii nie są nadpisywane przez tłumaczenie.
+- `app/src/i18n.ts`, `messages.ts`: tłumaczenie w stylu gettext (kluczem jest polska fraza). React używa `t()`. Silnik zapisuje tekst przez `setText`, `setHTML` i `setAttr`, które tłumaczą w chwili zapisu i zapamiętują polskie źródło. Zmiana języka renderuje widoki od nowa, bez MutationObservera.
 - `app/src/brewing.js`: zachowany mechanizm parzenia, alertów, sprzętu, historii i animacji z poprzedniej wersji, wydzielony z monolitycznego HTML. Migracja tego silnika do TypeScript pozostaje osobnym zadaniem; jego kontrakt z React jest opisany w `brewing.d.ts`.
 - `app/src/screens/*.html`: stałe fragmenty kontrolek silnika, importowane przez Vite. React utrzymuje je zamontowane podczas nawigacji, aby nie tracić odliczania i obsługi zdarzeń. Fragmenty nie pochodzą z plików użytkownika.
 - `app/src/app.css`: kompaktowy układ mobilny i nawigacja; `legacy.css`: style zachowanych kontrolek i wizualizacji.
