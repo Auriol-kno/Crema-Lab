@@ -11,6 +11,8 @@ import rating from './screens/rating.html?raw';
 import history from './screens/history.html?raw';
 import overlays from './screens/overlays.html?raw';
 import { Backup } from './Backup';
+import { readPreferences, savePreferences, type Preferences } from './preferences';
+import { startLocalization } from './i18n';
 
 type Screen = 'home' | 'timer' | 'equipment' | 'history' | 'rating';
 type Equipment = 'grinder' | 'anna' | 'service';
@@ -34,8 +36,13 @@ export function App() {
  useLayoutEffect(()=>{
   const notify=(value:BrewStatus)=>{const stamp=`${value.running}/${value.method}/${Math.floor(value.seconds)}`;if(stamp!==lastStatus.current){lastStatus.current=stamp;setStatus(value);}};
   engine.current=initBrewing(navigate,notify);
+  const stopLocalization=startLocalization();
+  const sync=()=>{const p=readPreferences();(document.getElementById('appTheme') as HTMLSelectElement).value=p.theme;(document.getElementById('appDensity') as HTMLSelectElement).value=p.density;(document.getElementById('appLanguage') as HTMLSelectElement).value=p.language;};
+  const settings=document.getElementById('settingsDialog')!;
+  const preferenceChange=(event:Event)=>{const el=event.target as HTMLSelectElement;const fields:Record<string,keyof Preferences>={appTheme:'theme',appDensity:'density',appLanguage:'language'};const field=fields[el.id];if(field)savePreferences({...readPreferences(),[field]:el.value});};
+  sync();settings.addEventListener('change',preferenceChange);window.addEventListener('crema:preferences',sync);
   const change=()=>setScreen(initialScreen());window.addEventListener('hashchange',change);
-  return ()=>window.removeEventListener('hashchange',change);
+  return ()=>{window.removeEventListener('hashchange',change);settings.removeEventListener('change',preferenceChange);window.removeEventListener('crema:preferences',sync);stopLocalization();};
  },[navigate]);
  return <div className="app-shell" data-screen={screen}>
   <header className="app-header">
