@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { initBrewing } from './brewing';
 import home from './screens/home.html?raw';
 import timer from './screens/timer.html?raw';
@@ -10,7 +10,7 @@ import steps from './screens/steps.html?raw';
 import rating from './screens/rating.html?raw';
 import history from './screens/history.html?raw';
 import overlays from './screens/overlays.html?raw';
-import { Backup } from './Backup';
+import { Backup, lastBackup } from './Backup';
 import { readPreferences, savePreferences, type Preferences } from './preferences';
 import { startLocalization } from './i18n';
 
@@ -19,11 +19,16 @@ type Equipment = 'grinder' | 'anna' | 'service';
 interface BrewStatus { running: boolean; method: string; seconds: number }
 const titles: Record<Screen,string> = {home:'Twoja codzienna kawa',timer:'Czas na dobry napar',equipment:'Twój warsztat',history:'Ostatnie filiżanki',rating:'Jak smakuje?'};
 const destinations: {id: Screen; label: string; icon: string}[] = [{id:'home',label:'Kawa',icon:'coffee'},{id:'timer',label:'Parzenie',icon:'timer'},{id:'equipment',label:'Sprzęt',icon:'sliders'},{id:'history',label:'Historia',icon:'history'}];
-const paths: Record<string,string> = {coffee:'M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Zm12 1h2a3 3 0 0 1 0 6h-2M3 22h16M8 2v3m4-3v3',timer:'M9 2h6m-3 0v3m7 0 2 2M12 9v5l3 2M21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0',sliders:'M3 6h18M3 18h18M8 3v6m8 6v6',history:'M3 4v6h6M3 10a9 9 0 1 1 1 9m8-12v6l4 2',settings:'M3 6h18M3 18h18M8 3v6m8 6v6'};
+const paths: Record<string,string> = {coffee:'M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Zm12 1h2a3 3 0 0 1 0 6h-2M3 22h16M8 2v3m4-3v3',timer:'M9 2h6m-3 0v3m7 0 2 2M12 9v5l3 2M21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0',sliders:'M3 6h18M3 18h18M8 3v6m8 6v6',history:'M3 4v6h6M3 10a9 9 0 1 1 1 9m8-12v6l4 2',settings:'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.4-2.1.9.7a.5.5 0 0 1 .1.6l-1.6 2.8a.5.5 0 0 1-.6.2l-1.1-.4a7 7 0 0 1-1.6.9l-.2 1.2a.5.5 0 0 1-.5.4h-3.2a.5.5 0 0 1-.5-.4l-.2-1.2a7 7 0 0 1-1.6-.9l-1.1.4a.5.5 0 0 1-.6-.2l-1.6-2.8a.5.5 0 0 1 .1-.6l.9-.7a7 7 0 0 1 0-1.8l-.9-.7a.5.5 0 0 1-.1-.6l1.6-2.8a.5.5 0 0 1 .6-.2l1.1.4a7 7 0 0 1 1.6-.9l.2-1.2a.5.5 0 0 1 .5-.4h3.2a.5.5 0 0 1 .5.4l.2 1.2a7 7 0 0 1 1.6.9l1.1-.4a.5.5 0 0 1 .6.2l1.6 2.8a.5.5 0 0 1-.1.6l-.9.7a7 7 0 0 1 0 1.8Z'};
 function Icon({name}: {name:string}) {return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]}/></svg>}
 // These fixed fragments belong to the retained brewing engine. Memoization keeps
 // React navigation renders from replacing its controls, live SVG or event handlers.
 const BrewingPanel = memo(function BrewingPanel({html}: {html:string}) {return <div className="engine-panel" dangerouslySetInnerHTML={{__html:html}}/>});
+const clock=(s:number)=>s<60?`${Math.floor(s)} s`:`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+const savedCount=():number=>{try{return (JSON.parse(localStorage.getItem('cremalab.iphone.v3')||'{}').hist||[]).length;}catch{return 0;}};
+const ios=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||(navigator as Navigator&{standalone?:boolean}).standalone===true;
+const hintKey='cremalab.installHint.v1';
 function initialScreen(): Screen {const hash=location.hash.slice(1);return hash in titles ? hash as Screen : 'home';}
 export function App() {
  const [screen,setScreen]=useState<Screen>(initialScreen);
@@ -32,27 +37,48 @@ export function App() {
  const engine=useRef<ReturnType<typeof initBrewing> | null>(null);
  const main=useRef<HTMLElement>(null);
  const lastStatus=useRef('');
+ const [dock,setDock]=useState(false);
+ const [backupDue,setBackupDue]=useState(false);
+ const [installHint,setInstallHint]=useState(()=>{try{return ios()&&!standalone()&&!localStorage.getItem(hintKey);}catch{return false;}});
  const navigate=useCallback((next:string)=>{if(!(next in titles))return;const s=next as Screen;setScreen(s);if(location.hash!==`#${s}`)location.hash=s;requestAnimationFrame(()=>{main.current?.scrollTo(0,0);document.getElementById('screen-title')?.focus({preventScroll:true});});},[]);
  useLayoutEffect(()=>{
   const notify=(value:BrewStatus)=>{const stamp=`${value.running}/${value.method}/${Math.floor(value.seconds)}`;if(stamp!==lastStatus.current){lastStatus.current=stamp;setStatus(value);}};
   engine.current=initBrewing(navigate,notify);
   const stopLocalization=startLocalization();
-  const sync=()=>{const p=readPreferences();(document.getElementById('appTheme') as HTMLSelectElement).value=p.theme;(document.getElementById('appDensity') as HTMLSelectElement).value=p.density;(document.getElementById('appLanguage') as HTMLSelectElement).value=p.language;};
+  const sync=()=>{const p=readPreferences();(document.getElementById('appTheme') as HTMLSelectElement).value=p.theme;(document.getElementById('appMode') as HTMLSelectElement).value=p.mode;(document.getElementById('appDensity') as HTMLSelectElement).value=p.density;(document.getElementById('appLanguage') as HTMLSelectElement).value=p.language;};
   const settings=document.getElementById('settingsDialog')!;
-  const preferenceChange=(event:Event)=>{const el=event.target as HTMLSelectElement;const fields:Record<string,keyof Preferences>={appTheme:'theme',appDensity:'density',appLanguage:'language'};const field=fields[el.id];if(field)savePreferences({...readPreferences(),[field]:el.value});};
+  const preferenceChange=(event:Event)=>{const el=event.target as HTMLSelectElement;const fields:Record<string,keyof Preferences>={appTheme:'theme',appMode:'mode',appDensity:'density',appLanguage:'language'};const field=fields[el.id];if(field)savePreferences({...readPreferences(),[field]:el.value});};
   sync();settings.addEventListener('change',preferenceChange);window.addEventListener('crema:preferences',sync);
   const change=()=>setScreen(initialScreen());window.addEventListener('hashchange',change);
   return ()=>{window.removeEventListener('hashchange',change);settings.removeEventListener('change',preferenceChange);window.removeEventListener('crema:preferences',sync);stopLocalization();};
  },[navigate]);
- return <div className="app-shell" data-screen={screen}>
+ useEffect(()=>{
+  // Keep Start/Stop and Reset reachable while the extraction preview pushes them off screen.
+  const btn=document.getElementById('mainBtn'), preview=document.querySelector('.visual-details') as HTMLDetailsElement|null;
+  if(!btn||!preview||!main.current)return;
+  let visible=true;
+  const update=()=>setDock(screen==='timer'&&preview.open&&!visible);
+  const io=new IntersectionObserver(([e])=>{visible=e.isIntersecting;update();},{root:main.current,threshold:.6});
+  io.observe(btn);preview.addEventListener('toggle',update);update();
+  return ()=>{io.disconnect();preview.removeEventListener('toggle',update);};
+ },[screen]);
+ useEffect(()=>{
+  const check=()=>{const n=savedCount(),last=lastBackup();setBackupDue(n>=3&&Date.now()-last>21*864e5);};
+  check();window.addEventListener('crema:data',check);return ()=>window.removeEventListener('crema:data',check);
+ },[]);
+ const openBackup=()=>{navigate('history');requestAnimationFrame(()=>{const d=document.getElementById('backupCard') as HTMLDetailsElement|null;if(d){d.open=true;d.scrollIntoView({block:'center'});}});};
+ const dismissHint=()=>{try{localStorage.setItem(hintKey,'1');}catch{}setInstallHint(false);};
+ return <div className="app-shell" data-screen={screen} data-dock={dock?'on':undefined}>
   <header className="app-header">
    <button className="brand-button" onClick={()=>navigate('home')} aria-label="Crema Lab — ekran główny"><span className="brand-mark">c.</span><span>Crema <b>Lab</b></span></button>
    <span id="chip" hidden/>
    <button id="settingsBtn" className="settings-trigger" aria-label="Ustawienia" aria-haspopup="dialog"><Icon name="settings"/></button>
   </header>
   <main ref={main} className="app-content" id="app-content">
-   <div className="screen-heading"><p className="overline">{screen==='home'?'ZACZNIJ OD FILIŻANKI':screen==='timer'?'PARZENIE':'CREMA LAB'}</p><h1 id="screen-title" tabIndex={-1}>{screen==='timer'?status.method:titles[screen]}</h1>{status.running&&screen!=='timer'&&<button className="live-pill" onClick={()=>navigate('timer')}><span/>Parzenie trwa · {Math.floor(status.seconds)} s →</button>}</div>
+   <div className="screen-heading">{(screen==='home'||screen==='timer')&&<p className="overline">{screen==='home'?'ZACZNIJ OD FILIŻANKI':'PARZENIE'}</p>}<h1 id="screen-title" tabIndex={-1}>{screen==='timer'?status.method:titles[screen]}</h1>{status.running&&screen!=='timer'&&<button className="live-pill" onClick={()=>navigate('timer')}><span/>Parzenie trwa · {clock(status.seconds)} →</button>}</div>
    <section hidden={screen!=='home'} aria-label="Wybór kawy" className="screen">
+    {installHint&&<div className="hint-card" role="note"><p><b>Dodaj Crema Lab do ekranu początkowego.</b> Udostępnij → „Do ekranu początkowego”. Aplikacja otworzy się na pełnym ekranie, a Safari nie wyczyści Twojej historii.</p><button onClick={dismissHint} aria-label="Ukryj podpowiedź">×</button></div>}
+    {backupDue&&<div className="hint-card warn" role="note"><p><b>Zrób kopię danych.</b> Historia i kalibracja są tylko na tym telefonie.</p><button className="hint-action" onClick={openBackup}>Kopia →</button></div>}
     <BrewingPanel html={home}/>
     <button className="wide-link" onClick={()=>{setEquipment('grinder');navigate('equipment');}}>Dostosuj dawkę i mielenie <span>→</span></button>
     <div className="home-note"><Icon name="coffee"/><p>Twój przepis, Twoje tempo.<br/><span>Ustawienia i historia zostają na tym urządzeniu.</span></p></div>
@@ -70,9 +96,14 @@ export function App() {
     <div hidden={equipment!=='service'}><BrewingPanel html={service}/></div>
     <button className="wide-link" onClick={()=>navigate('timer')}>Wróć do parzenia <span>→</span></button>
    </section>
-   <section hidden={screen!=='history'} aria-label="Historia kaw" className="screen"><BrewingPanel html={history}/><Backup/></section>
+   <section hidden={screen!=='history'} aria-label="Historia kaw" className="screen">{backupDue&&<p className="notice">Ostatnia kopia danych była dawno albo nigdy. Zapisz ją poniżej.</p>}<BrewingPanel html={history}/><Backup/></section>
    <section hidden={screen!=='rating'} aria-label="Ocena kawy" className="screen"><BrewingPanel html={rating}/><button className="wide-link" onClick={()=>navigate('history')}>Zobacz historię <span>→</span></button><button className="wide-link" onClick={()=>navigate('home')}>Przygotuj kolejną kawę <span>→</span></button></section>
   </main>
+  {dock&&<div className="control-dock" role="group" aria-label="Sterowanie parzeniem">
+   <div className="dock-time"><b>{clock(status.seconds)}</b><span>{status.running?'parzenie trwa':status.seconds>0?'pauza':'gotowy'}</span></div>
+   <button className="dock-main" onClick={()=>document.getElementById('mainBtn')?.click()}>{status.running?'Stop':status.seconds>0?'Wznów':'Start'}</button>
+   <button className="dock-reset" onClick={()=>document.getElementById('resetBtn')?.click()}>Zeruj</button>
+  </div>}
   <nav className="bottom-nav" aria-label="Nawigacja główna">{destinations.map(d=><button key={d.id} aria-current={screen===d.id?'page':undefined} onClick={()=>navigate(d.id)}><span className="nav-icon"><Icon name={d.icon}/>{d.id==='timer'&&status.running&&<i/>}</span><span>{d.label}</span></button>)}</nav>
   <BrewingPanel html={overlays}/>
  </div>

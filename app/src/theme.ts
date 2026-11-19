@@ -1,2 +1,3 @@
-// Compatibility entry point: appearance, density and language now have independent settings.
+// Entry point for appearance: theme (Palarnia, Szałwia, Soft), day/night/system mode,
+// density and language are independent preferences, see preferences.ts.
 import './preferences';

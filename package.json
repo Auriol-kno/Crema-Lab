@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/publish.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node tests/mobile.cjs"
+    "test": "node --experimental-strip-types tests/advice.test.mjs && node tests/mobile.cjs && node tests/features.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",
