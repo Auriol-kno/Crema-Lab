@@ -7,7 +7,8 @@ Polskojęzyczny pomocnik parzenia kawy na iPhone'a, zbudowany z React, TypeScrip
 - **Kawa:** wybór metody, presetu i ścieżki „Prowadź mnie” / „Sam timer”.
 - **Parzenie:** duży czas, etap, cel, start/stop, ocena kawy oraz rozwijane etapy i wizualizacja. Ciśnienie i ekstrakcja są symulacją, nie pomiarem z urządzenia.
 - **Sprzęt:** osobne zakładki młynków, Lelit Anna i serwisu. K-Pro ma regulację pojedynczym kliknięciem. William zachowuje kalibrację g/s i czas, także gdy inne metody korzystają z K-Pro. Anna zachowuje PID, licznik rozgrzewania i instrukcje obsługi mleka/kotła.
-- **Historia:** 30 ostatnich ocenionych kaw (z licznikiem i usuwaniem pojedynczych wpisów) i ponowne użycie ustawień. Eksport/import kopii JSON przenosi dane między urządzeniami.
+- **Historia:** 100 ostatnich ocenionych kaw (z licznikiem i usuwaniem pojedynczych wpisów) i ponowne użycie ustawień.
+- **Baza kaw:** przy ocenie wybierasz jedną z ostatnio pitych kaw albo dopisujesz nową (marka i nazwa) i możesz zrobić zdjęcie opakowania. Zdjęcie jest zmniejszane do miniatury około 320 px i pokazywane w historii. Na ekranie Kawa wybierasz kawę, a aplikacja podpowiada jej najlepiej ocenione ustawienia dla bieżącej metody i ostrzega, gdy danych jest mało. W Historii lista „Twoje kawy” pokazuje liczbę naparów, średnią ocenę i najlepsze ustawienia dla każdej metody, z przyciskiem „Użyj”. Dane są w `cremalab.coffees.v1` i `cremalab.photos.v1` i wchodzą do kopii JSON. Eksport/import kopii JSON przenosi dane między urządzeniami.
 
 Ustawienia zawierają niezależne wybory motywu, gęstości i języka:
 
@@ -45,6 +46,7 @@ Aplikacja działa offline (service worker, network-first dla strony, cache dla z
 
 - `app/src/App.tsx`: React, typowana nawigacja i niezależne widoki.
 - `app/src/Backup.tsx`: eksport/import danych z walidacją i potwierdzeniem zastąpienia.
+- `app/src/coffees.ts`: baza kaw (dodawanie bez duplikatów, najlepszy napar, podsumowania, walidacja, miniatury zdjęć) z testami w `tests/coffees.test.mjs`.
 - `app/src/advice.ts`: czysta logika porad po ocenie (smak, ciało, czas → zmiana mielenia/proporcji/temperatury), testowana jednostkowo.
 - Style są w warstwach CSS (`@layer legacy, app, palarnia, appearance, mode, polish, overrides`): późniejsza warstwa wygrywa bez `!important`. `!important` zostało tylko na `[hidden]`, a `overrides.css` zbiera kilka deklaracji, które muszą wygrywać z każdym motywem. Usunięcie 534 `!important` sprawdzono porównaniem stylów wyliczonych przez przeglądarkę dla każdego elementu w 64 stanach (motywy × tryby × gęstości × ekrany). Różnica wyniosła zero.
 - `app/src/bar.css`: motyw Kawiarnia (dzień i noc).

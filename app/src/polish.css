@@ -39,3 +39,41 @@
 :root[data-density="compact"] .dock-main,:root[data-density="compact"] .dock-reset{min-height:46px;font-size:16px}
 
 }
+
+/* Coffee database: picker at rating, row on the home card, thumbnails in history and "Twoje kawy". */
+@layer polish{
+.coffee-pick{display:grid;gap:8px}
+.coffee-chips{flex-wrap:wrap}
+.coffee-chips button{display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.coffee-chips button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-thumb{width:22px;height:22px;border-radius:6px;object-fit:cover;flex:none}
+.coffee-new{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.coffee-new input{min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
+.coffee-new .sbtn{min-height:44px;padding:0 16px}
+.coffee-photo{display:flex;align-items:center;gap:10px}
+.coffee-photo .sbtn{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;cursor:pointer}
+.pick-thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;display:block;border:1px solid var(--line)}
+.coffee-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px}
+.coffee-row label{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.coffee-row select{min-height:44px;width:100%;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
+.coffee-hint{display:flex;align-items:center;gap:10px;justify-content:space-between;font-size:13px;line-height:1.35;color:var(--soft)}
+.coffee-hint button,.cf-m button{flex:none;min-height:40px;padding:0 14px;border:1px solid var(--accent);border-radius:var(--r-ctl);background:none;color:var(--accent);font:inherit;font-weight:700}
+.h-coffee{display:flex;align-items:center;gap:8px;font-weight:650;font-size:14px;color:var(--ink);margin:2px 0}
+.h-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none;border:1px solid var(--line)}
+#coffees{display:grid;gap:14px}
+.cf{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.cf:last-child{border-bottom:0;padding-bottom:0}
+.cf-top{display:flex;align-items:center;gap:12px}
+.cf-thumb{width:64px;height:64px;border-radius:14px;object-fit:cover;flex:none;border:1px solid var(--line)}
+.cf-none{display:grid;place-items:center;background:var(--surface-2);color:var(--muted)}
+.cf-none{font-size:26px;font-weight:800;font-family:var(--title,inherit)}
+.cf-stars{font-style:normal;color:var(--accent);letter-spacing:1px;margin-left:4px}
+.cf-name{display:grid;gap:2px;min-width:0}
+.cf-name b{font-size:16px;overflow-wrap:anywhere}
+.cf-name small{color:var(--muted);font-size:12px}
+.cf-m{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}
+.cf-m>div{display:grid;gap:2px;min-width:0}
+.cf-m span{color:var(--soft);font-size:12px}
+.cf-m small{color:var(--muted)}
+.cf-photo{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-ctl);font-size:13px;font-weight:600;cursor:pointer}
+}

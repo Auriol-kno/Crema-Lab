@@ -1,6 +1,7 @@
 import { translate, currentLanguage, setText, setHTML, setAttr } from './i18n';
 import { M, ORDER, DEF } from './recipes';
-const HIST_MAX=30;
+const HIST_MAX=100;
+import { loadStore, saveStore, addCoffee, findById, recent, touch, summarize, bestEntry, loadPhotos, savePhoto, makeThumb } from './coffees';
 import { advise as adviseCore, TASTES, BODIES, tasteOf } from './advice';
 const advise=(...a)=>adviseCore(...a.slice(0,8),currentLanguage()==='en'?'.':',');
 
@@ -194,7 +195,7 @@ function buildSliders(){
 const SCENES={espresso:'sEspresso',aeropress:'sAero',v60:'sV60',french:'sFrench',turkish:'sTurkish',moka:'sMoka'};
 function buildAll(){
   document.querySelectorAll('#tabs button').forEach(b=>{const selected=b.dataset.m===S.method;b.setAttribute('aria-selected',selected?'true':'false');b.tabIndex=selected?0:-1;});
-  buildPresets(); buildSliders(); grinderUi(); annaUi();
+  buildPresets(); buildSliders(); grinderUi(); annaUi(); renderHomeCoffee();
   $('preRow').hidden=S.method!=='espresso';
   $('coldNote').hidden=!!M[S.method].temp;
   $('mokaNote').hidden=S.method!=='moka';
@@ -421,6 +422,7 @@ function currentAdvice(){
   return advise(S.method,S.params[S.method],S.pidx[S.method],R.taste,R.body||'ok',el>0?el:null,R.stars,{type:G(),lelit:S.lelit});
 }
 function renderRating(){
+  renderCoffeePick();
   setHTML($('stars'),[1,2,3,4,5].map(i=>'<button type="button" data-s="'+i+'" class="'+(i<=R.stars?'on':'')+'" aria-label="'+i+' z 5" aria-pressed="'+(i<=R.stars)+'"><svg><use href="#i-star"/></svg></button>').join(''));
   setHTML($('tasteChips'),TASTES.map(t=>'<button type="button" data-t="'+t.k+'" aria-pressed="'+(R.taste===t.k)+'">'+t.l+'</button>').join(''));
   setHTML($('bodyChips'),BODIES.map(b=>'<button type="button" data-b="'+b.k+'" aria-pressed="'+(R.body===b.k)+'">'+b.l+'</button>').join(''));
@@ -451,27 +453,101 @@ $('saveBtn').addEventListener('click',()=>{
   const a=currentAdvice(); if(!a||!R.stars) return;
   const p=S.params[S.method];
   S.hist.unshift({ts:Date.now(),method:S.method,preset:S.pidx[S.method],dose:p.dose,ratio:p.ratio,temp:p.temp,grind:p.grind,grinder:G(),ldial:S.lelit.dial,ltime:S.lelit.time,
-    time:el>0?Math.round(el*10)/10:null,stars:R.stars,taste:R.taste,body:R.body||'ok',z:a.z,adv:a.rows.map(r=>r[0]+': '+r[1]),delta:a.delta});
-  S.hist=S.hist.slice(0,HIST_MAX); persist(); renderHist();
+    time:el>0?Math.round(el*10)/10:null,stars:R.stars,taste:R.taste,body:R.body||'ok',z:a.z,adv:a.rows.map(r=>r[0]+': '+r[1]),delta:a.delta,
+    coffee:CS.current,cn:(findById(CS,CS.current)||{}).name||null});
+  if(CS.current){touch(CS,CS.current);saveCoffees();}
+  S.hist=S.hist.slice(0,HIST_MAX); persist(); renderHist(); renderCoffees(); renderHomeCoffee();
   R.stars=0; R.taste=null; R.body=null; renderRating();
   toast('Zapisano w historii');
 });
+
+/* ---------- coffee database ---------- */
+let CS=loadStore();
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function saveCoffees(){ if(!saveStore(CS)) toast('Brak miejsca w pamięci telefonu'); window.dispatchEvent(new CustomEvent('crema:data')); }
+function photoTag(id,cls){const ph=id&&loadPhotos()[id]; return ph?'<img class="'+cls+'" src="'+ph+'" alt="">':'';}
+function parOf(h){const m=M[h.method]; return num(h.dose)+' g · 1:'+num(h.ratio)+(m.temp&&h.temp?' · '+h.temp+' °C':'')+(h.grinder==='lelit'?' · Lelit '+f1(h.ldial)+' / '+f1(h.ltime)+' s':' · K-Pro '+gtxt(h.grind))+(h.time?' · '+(h.method==='espresso'?num(h.time)+' s':mss(h.time)):'');}
+const stars1=v=>num(Math.round(v*10)/10);
+const brews=n=>n+' '+(n===1?'napar':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'napary':'naparów');
+function coffeeLine(h){const c=findById(CS,h.coffee), name=c?c.name:h.cn; if(!name) return ''; return '<div class="h-coffee">'+photoTag(c&&c.id,'h-thumb')+'<span>'+esc(name)+'</span></div>';}
+function renderCoffeePick(){
+  const list=recent(CS).slice(0,8);
+  setHTML($('coffeeChips'),list.map(c=>'<button type="button" data-c="'+c.id+'" aria-pressed="'+(CS.current===c.id)+'">'+photoTag(c.id,'chip-thumb')+'<span>'+esc(c.name)+'</span></button>').join(''));
+  $('coffeeChips').hidden=!list.length;
+  const cur=findById(CS,CS.current);
+  setHTML($('coffeeThumbBox'),cur?photoTag(cur.id,'pick-thumb'):'');
+  setText($('coffeePhotoLbl'),cur&&loadPhotos()[cur.id]?'Zmień zdjęcie opakowania':'Zrób zdjęcie opakowania');
+}
+function selectCoffee(id){CS.current=id; if(id) touch(CS,id); saveCoffees(); renderCoffeePick(); renderHomeCoffee();}
+function addFromInput(){const c=addCoffee(CS,$('coffeeName').value); if(!c){toast('Wpisz markę i nazwę kawy'); return null;} $('coffeeName').value=''; selectCoffee(c.id); return c;}
+$('coffeeChips').addEventListener('click',e=>{const b=e.target.closest('button[data-c]'); if(!b) return; selectCoffee(CS.current===b.dataset.c?null:b.dataset.c);});
+$('coffeeAdd').addEventListener('click',addFromInput);
+$('coffeeName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); addFromInput();}});
+async function storePhoto(file,id){
+  if(!file||!id) return;
+  try{const url=await makeThumb(file); if(!savePhoto(id,url)){toast('Brak miejsca w pamięci telefonu'); return;} toast('Zapisano zdjęcie opakowania');}
+  catch(e){toast('Nie udało się odczytać zdjęcia');}
+  window.dispatchEvent(new CustomEvent('crema:data')); renderCoffeePick(); renderHomeCoffee(); renderCoffees(); renderHist();
+}
+$('coffeePhoto').addEventListener('change',async e=>{
+  const file=e.target.files&&e.target.files[0]; e.target.value='';
+  let id=CS.current; if(!id&&$('coffeeName').value.trim()){const c=addFromInput(); id=c&&c.id;}
+  if(!id){toast('Najpierw wpisz lub wybierz kawę'); return;}
+  await storePhoto(file,id);
+});
+function renderHomeCoffee(){
+  const list=recent(CS);
+  $('coffeeRow').hidden=!list.length;
+  const sel=$('homeCoffee');
+  setHTML(sel,'<option value="">Nie wybrano</option>'+list.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join(''));
+  sel.value=CS.current&&findById(CS,CS.current)?CS.current:'';
+  const hint=$('coffeeHint'), cur=findById(CS,CS.current);
+  if(!cur){hint.hidden=true; return;}
+  const i=bestEntry(S.hist,cur.id,S.method), n=S.hist.filter(h=>h.coffee===cur.id&&h.method===S.method).length;
+  hint.hidden=false;
+  if(i<0){setHTML(hint,'<span>Pierwszy napar tej kawy tą metodą. Po ocenie zapamiętam ustawienia.</span>'); return;}
+  const h=S.hist[i];
+  setHTML(hint,'<span><b>Najlepiej dla tej kawy</b> · '+'★'.repeat(h.stars)+' · '+parOf(h)+(n<3?' · mało danych ('+brews(n)+')':' · '+brews(n))+'</span><button type="button" data-load="'+i+'">Użyj</button>');
+}
+$('homeCoffee').addEventListener('change',e=>selectCoffee(e.target.value||null));
+$('coffeeHint').addEventListener('click',e=>{const b=e.target.closest('button[data-load]'); if(b) loadEntry(+b.dataset.load,false);});
+function renderCoffees(){
+  const list=recent(CS);
+  setText($('coffCount'),list.length?String(list.length):'');
+  if(!list.length){setHTML($('coffees'),'<p class="empty" style="margin:0">Przy ocenie wpisz markę kawy i zrób zdjęcie opakowania. Tutaj zbiorę, jakie ustawienia najlepiej sprawdziły się z każdą kawą.</p>'); return;}
+  setHTML($('coffees'),list.map(c=>{
+    const sm=summarize(S.hist,c.id);
+    const rows=sm.methods.map(x=>{const h=S.hist[x.best]; return '<div class="cf-m"><div><b>'+mname(x.method)+' <i class="cf-stars" aria-label="Najlepsza ocena '+h.stars+' z 5">'+'★'.repeat(h.stars)+'</i></b><small>śr. ★'+stars1(x.avg)+' · '+brews(x.count)+'</small><span>'+parOf(h)+'</span></div><button type="button" data-load="'+x.best+'">Użyj</button></div>';}).join('');
+    return '<div class="cf"><div class="cf-top">'+(photoTag(c.id,'cf-thumb')||'<span class="cf-thumb cf-none" aria-hidden="true">'+esc(c.name.charAt(0).toUpperCase())+'</span>')
+      +'<div class="cf-name"><b>'+esc(c.name)+'</b><small>'+(sm.count?brews(sm.count)+' · śr. ★'+stars1(sm.avg):'Jeszcze bez ocen')+'</small></div></div>'
+      +rows+'<div class="h-act"><label class="cf-photo">'+(loadPhotos()[c.id]?'Zmień zdjęcie':'Dodaj zdjęcie')+'<input type="file" accept="image/*" capture="environment" data-photo="'+c.id+'" hidden></label>'
+      +'<button type="button" class="h-del" data-cdel="'+c.id+'">Usuń kawę</button></div></div>';
+  }).join(''));
+}
+$('coffees').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.load!=null){loadEntry(+b.dataset.load,false); return;}
+  if(b.dataset.cdel){const c=findById(CS,b.dataset.cdel); if(!c||!window.confirm(translate('Usunąć tę kawę z bazy? Wpisy w historii zostaną.'))) return;
+    CS.list=CS.list.filter(x=>x.id!==c.id); if(CS.current===c.id) CS.current=null; savePhoto(c.id,null); saveCoffees(); renderCoffees(); renderCoffeePick(); renderHomeCoffee(); renderHist(); toast('Usunięto kawę');}
+});
+$('coffees').addEventListener('change',e=>{const inp=e.target.closest('input[data-photo]'); if(!inp) return; const f=inp.files&&inp.files[0]; storePhoto(f,inp.dataset.photo);});
 
 /* ---------- history ---------- */
 function renderHist(){
   $('clearHist').hidden=!S.hist.length;
   setText($('histCount'),S.hist.length?S.hist.length+' / '+HIST_MAX:'');
-  if(!S.hist.length){setHTML($('hist'),'<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 30 ostatnich.</p>'); return;}
+  if(!S.hist.length){setHTML($('hist'),'<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 100 ostatnich.</p>'); return;}
   setHTML($('hist'),S.hist.map((h,i)=>{
     const m=M[h.method], pr=m.presets[h.preset]||m.presets[0];
     let when=''; try{when=new Date(h.ts).toLocaleString(currentLanguage()==='en'?'en-GB':'pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
     const t=tasteOf(h.taste)||TASTES[2], b=BODIES.find(x=>x.k===h.body)||BODIES[1];
-    const par=num(h.dose)+' g · 1:'+num(h.ratio)+(m.temp&&h.temp?' · '+h.temp+' °C':'')+(h.grinder==='lelit'?' · Lelit '+f1(h.ldial)+' / '+f1(h.ltime)+' s':' · K-Pro '+gtxt(h.grind))+(h.time?' · '+(h.method==='espresso'?num(h.time)+' s':mss(h.time)):'');
+    const par=parOf(h);
     const adv=(h.adv&&h.adv[0])||'';
     const ai=adv.indexOf(': ');
     return '<div class="h"><div class="h-top"><svg class="mi" aria-hidden="true"><use href="#i-'+h.method+'"/></svg>'
       +'<div class="t"><b>'+m.name+' · '+pr.n+'</b><small>'+when+'</small></div>'
       +'<span class="h-stars" aria-label="Ocena '+h.stars+' z 5">'+'★'.repeat(h.stars)+'<span style="color:var(--line)">'+'★'.repeat(5-h.stars)+'</span></span></div>'
+      +coffeeLine(h)
       +'<div class="h-par">'+par+'</div>'
       +'<div><span class="pill" data-z="'+h.z+'">'+t.l.toUpperCase()+'</span><span class="pill" data-z="'+(h.body==='ok'?'ok':'under')+'" style="'+(h.body==='mocna'?'background:rgba(242,123,108,.18);color:var(--bad)':'')+'">'+b.l.toUpperCase()+'</span></div>'
       +(adv?'<div class="h-adv"><b>'+(ai>0?adv.slice(0,ai):'')+'</b>'+(ai>0?': '+adv.slice(ai+2):adv)+'</div>':'')
@@ -481,17 +557,21 @@ function renderHist(){
 }
 $('hist').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
-  if(b.dataset.del!=null){const k=+b.dataset.del; if(!S.hist[k]||!window.confirm(translate('Usunąć ten wpis z historii?'))) return; S.hist.splice(k,1); persist(); renderHist(); toast('Usunięto wpis'); return;}
-  const i=+(b.dataset.load??b.dataset.next), h=S.hist[i]; if(!h) return;
+  if(b.dataset.del!=null){const k=+b.dataset.del; if(!S.hist[k]||!window.confirm(translate('Usunąć ten wpis z historii?'))) return; S.hist.splice(k,1); persist(); renderHist(); renderCoffees(); renderHomeCoffee(); toast('Usunięto wpis'); return;}
+  loadEntry(+(b.dataset.load??b.dataset.next),b.dataset.next!=null);
+});
+function loadEntry(i,next){
+  const h=S.hist[i]; if(!h) return;
   stopRun(); el=0;
+  if(h.coffee&&findById(CS,h.coffee)){CS.current=h.coffee;saveCoffees();}
   S.method=h.method; S.pidx[h.method]=h.preset||0;
   const P=S.params[h.method]; P.dose=h.dose; P.ratio=h.ratio; if(h.temp!=null) P.temp=h.temp; P.grind=h.grind;
   if(h.grinder==='lelit'){S.grinder='lelit'; if(h.ldial!=null) S.lelit.dial=h.ldial; if(h.ltime!=null) S.lelit.time=h.ltime;} else if(h.method==='espresso') S.grinder='kpro';
-  if(b.dataset.next!=null) applyDelta(h.method,h.delta||{});
+  if(next) applyDelta(h.method,h.delta||{});
   persist(); buildAll(); navigate('home');
-  toast(b.dataset.next!=null?'Wczytano z poprawkami':'Wczytano ustawienia');
-});
-$('clearHist').addEventListener('click',()=>{if(!window.confirm(translate('Usunąć zapisaną historię parzeń?'))) return; S.hist=[]; persist(); renderHist();});
+  toast(next?'Wczytano z poprawkami':'Wczytano ustawienia');
+}
+$('clearHist').addEventListener('click',()=>{if(!window.confirm(translate('Usunąć zapisaną historię parzeń?'))) return; S.hist=[]; persist(); renderHist(); renderCoffees(); renderHomeCoffee();});
 
 /* ---------- events ---------- */
 $('tabs').addEventListener('keydown',e=>{
@@ -857,9 +937,9 @@ $('gBody').addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('guide').hidden) closeGuide(); });
 
 (function(){let h='';for(let i=0;i<=8;i++){const a=Math.PI*(1-i/8),c=Math.cos(a),n=Math.sin(a);h+='<line x1="'+(70+40*c).toFixed(1)+'" y1="'+(72-40*n).toFixed(1)+'" x2="'+(70+(i%2?44:46)*c).toFixed(1)+'" y2="'+(72-(i%2?44:46)*n).toFixed(1)+'"/>';}setHTML($('bTicksG'),h);})();
-window.addEventListener('crema:preferences',()=>{buildAll();renderHist();servUi();if(!$('guide').hidden)renderGuide();});
+window.addEventListener('crema:preferences',()=>{buildAll();renderHist();renderCoffees();renderCoffeePick();servUi();if(!$('guide').hidden)renderGuide();});
 alertsUi();
-buildAll(); renderHist(); servUi(); requestAnimationFrame(frame);
+buildAll(); renderHist(); renderCoffees(); renderCoffeePick(); servUi(); requestAnimationFrame(frame);
 function finishBrew(){stopRun(); countShot(); renderRating(); clearTint(); $('ratePrompt').hidden=true; update(); navigate('rating');}
 return { finish:finishBrew };
 
