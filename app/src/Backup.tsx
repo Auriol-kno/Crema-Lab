@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
-const keys=['cremalab.iphone.v3','cremalab.iphone.v2','cremalab.theme'] as const;
+import { translate } from './i18n';
+const keys=['cremalab.iphone.v3','cremalab.iphone.v2','cremalab.theme','cremalab.preferences.v1'] as const;
 const methods=['espresso','aeropress','v60','french','turkish','moka'];
 function validData(raw: unknown): raw is Record<string,string|null> {
  if(!raw || typeof raw!=='object')return false;
  const values=raw as Record<string,unknown>;
- if(!keys.every(k=>values[k]===null || typeof values[k]==='string'))return false;
+ if(!keys.every(k=>values[k]===null || typeof values[k]==='string' || k==='cremalab.preferences.v1'&&values[k]===undefined))return false;
  if(values['cremalab.theme']!==null&&!['palarnia','cafe','bar','studio'].includes(String(values['cremalab.theme'])))return false;
- try { for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
+ try { if(typeof values['cremalab.preferences.v1']==='string'){const p=JSON.parse(values['cremalab.preferences.v1']);if(!['palarnia','sage','soft'].includes(p.theme)||!['standard','compact'].includes(p.density)||!['pl','en'].includes(p.language))return false;} for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
  // Imported history reaches the existing engine's HTML renderer: accept only
  // plain text and bounded numeric values, never markup or invalid ratings.
  const safe=(v:unknown):boolean=>typeof v==='string'?!/[<>]/.test(v):typeof v==='number'?Number.isFinite(v):v===null||typeof v==='boolean'||(typeof v==='object'&&Object.values(v).every(safe));
@@ -16,8 +17,8 @@ function validData(raw: unknown): raw is Record<string,string|null> {
 export function Backup(){
  const input=useRef<HTMLInputElement>(null);const [message,setMessage]=useState('');
  function download(){try{const data=Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));const blob=new Blob([JSON.stringify({app:'Crema Lab',version:1,data},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crema-lab-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setMessage('Kopia danych jest gotowa do zapisania.');}catch{setMessage('Nie udało się odczytać danych z przeglądarki.');}}
- async function restore(file?:File){if(!file)return;try{if(file.size>1_000_000)throw Error();const backup=JSON.parse(await file.text());if(backup.app!=='Crema Lab'||backup.version!==1||!validData(backup.data))throw Error();if(!window.confirm('Zastąpić ustawienia i historię danymi z kopii? Bieżące parzenie zostanie zakończone.'))return;
- const before=keys.map(k=>[k,localStorage.getItem(k)] as const);try{keys.forEach(k=>backup.data[k]===null?localStorage.removeItem(k):localStorage.setItem(k,backup.data[k]));}catch(error){before.forEach(([k,v])=>v===null?localStorage.removeItem(k):localStorage.setItem(k,v));throw error;}location.reload();
+ async function restore(file?:File){if(!file)return;try{if(file.size>1_000_000)throw Error();const backup=JSON.parse(await file.text());if(backup.app!=='Crema Lab'||backup.version!==1||!validData(backup.data))throw Error();if(!window.confirm(translate('Zastąpić ustawienia i historię danymi z kopii? Bieżące parzenie zostanie zakończone.')))return;
+ const before=keys.map(k=>[k,localStorage.getItem(k)] as const);try{keys.forEach(k=>{if(k==='cremalab.preferences.v1'&&backup.data[k]===undefined)return;backup.data[k]===null?localStorage.removeItem(k):localStorage.setItem(k,backup.data[k]);});}catch(error){before.forEach(([k,v])=>v===null?localStorage.removeItem(k):localStorage.setItem(k,v));throw error;}location.reload();
  }catch{setMessage('Nie można wczytać kopii. Wybierz poprawny plik Crema Lab.');}finally{if(input.current)input.current.value='';}}
  return <details className="details-card backup"><summary>Kopia Twoich danych <span>↓</span></summary><p className="subtle">Zapisz historię, kalibrację i ustawienia do pliku. Możesz przenieść je na inne urządzenie.</p><div className="backup-actions"><button onClick={download}>Eksportuj kopię</button><button onClick={()=>input.current?.click()}>Wczytaj kopię</button></div><input ref={input} type="file" accept="application/json,.json" hidden onChange={e=>void restore(e.target.files?.[0])}/><p role="status" className="subtle">{message}</p></details>
 }

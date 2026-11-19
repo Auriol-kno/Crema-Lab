@@ -1,3 +1,4 @@
+import { translate, currentLanguage } from './i18n';
 import { M, ORDER, DEF } from './recipes';
 
 // Existing brewing engine retained during the React migration. DOM is scoped to stable screen components.
@@ -38,7 +39,7 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify({method:S.method,
 let run=false, el=0, t0=0, wl=null, shotCounted=false;
 const R={stars:0,taste:null,body:null};
 
-const num=n=>{const r=Math.round(n*10)/10; return (r%1===0?String(r):r.toFixed(1)).replace('.',',');};
+const num=n=>{const r=Math.round(n*10)/10; return (r%1===0?String(r):r.toFixed(1)).replace('.',currentLanguage()==='en'?'.':',');};
 const mss=t=>{const s=Math.floor(t); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 const pct=x=>(Math.max(0,Math.min(1,x))*100).toFixed(1)+'%';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -56,7 +57,7 @@ const ZONES=[
   {n:'FRENCH P.',a:9,b:10,c:'#E05A6A',lane:1,m:'french'}
 ];
 const gr=g=>Math.round(g*10)/10;
-const gtxt=g=>gr(g).toFixed(1).replace('.',',');
+const gtxt=g=>gr(g).toFixed(1).replace('.',currentLanguage()==='en'?'.':',');
 const grindName=g=>{const z=ZONES.filter(z=>g>=z.a&&g<=z.b).map(z=>z.n.toLowerCase()); return z.length?z.join(' / '):(g<2?'bardzo drobno':'pomiędzy strefami');};
 const kParts=g=>{const t=Math.round(g*10); return Math.floor(t/10)+' + '+(t%10)+' klik.';};
 const mname=k=>M[k].short||M[k].name;
@@ -140,7 +141,7 @@ const G=()=>(S.grinder==='lelit'&&S.method==='espresso')?'lelit':'kpro';
 const lFiner=(d,st)=>clamp(S.lelit.fineLower?d-st:d+st,1,10);
 const lCoarser=(d,st)=>clamp(S.lelit.fineLower?d+st:d-st,1,10);
 const r1=v=>Math.round(v*10)/10;
-const f1=v=>(Math.round(v*10)/10).toFixed(1).replace('.',',');
+const f1=v=>(Math.round(v*10)/10).toFixed(1).replace('.',currentLanguage()==='en'?'.':',');
 function lelitUpdate(){
   const L=S.lelit, p=S.params.espresso, est=L.time*L.rate, need=r1(p.dose/L.rate);
   $('lDial').value=L.dial; $('lDial').style.setProperty('--p',((L.dial-1)/9*100)+'%');
@@ -160,7 +161,7 @@ function lelitUpdate(){
   $('lMatch').innerHTML=Math.abs(est-p.dose)>0.4
     ? 'Młynek da ≈ '+num(r1(est))+' g, a dawka to '+num(p.dose)+' g.<button type="button" id="lFit">Ustaw '+num(need)+' s</button>'
     : '<span style="color:var(--good)">✓ Czas pasuje do dawki '+num(p.dose)+' g</span>';
-  $('lRateTxt').textContent='Wydajność: '+L.rate.toFixed(2).replace('.',',')+' g/s'+(L.rate===2.5?' (wartość producenta, skalibruj na swojej kawie)':' (Twoja kalibracja)');
+  $('lRateTxt').textContent='Wydajność: '+L.rate.toFixed(2).replace('.',currentLanguage()==='en'?'.':',')+' g/s'+(L.rate===2.5?' (wartość producenta, skalibruj na swojej kawie)':' (Twoja kalibracja)');
   $('lDirSw').setAttribute('aria-checked',S.lelit.fineLower?'true':'false');
   $('lDirTxt').textContent=S.lelit.fineLower?'maleje (np. 5,5 → 5)':'rośnie (np. 5,5 → 6)';
 }
@@ -354,13 +355,13 @@ function update(){
     if(!run&&el>0) nice+=' · pauza';
     if($('bPh').textContent!==nice) $('bPh').textContent=nice;
     $('bDot').style.background=idle?'var(--muted)':col==='var(--accent)'?'var(--good)':col;
-    $('bTime').textContent=d.isE?(Math.floor(el*10)/10).toFixed(1).replace('.',','):mss(el); $('bTimeU').textContent=d.isE?'s':'min';
+    $('bTime').textContent=d.isE?(Math.floor(el*10)/10).toFixed(1).replace('.',currentLanguage()==='en'?'.':','):mss(el); $('bTimeU').textContent=d.isE?'s':'min';
     $('brewProgress').style.setProperty('--progress',pct(el/d.w1));
     $('brewProgress').setAttribute('aria-valuenow',String(Math.round(clamp(el/d.w1,0,1)*100)));
     $('brewProgress').setAttribute('aria-valuetext',Math.round(clamp(el/d.w1,0,1)*100)+'% czasu docelowego');
     $('bTarget').textContent={espresso:'Cel '+d.w0+'–'+d.w1+' s',aeropress:'Prasowanie od '+mss(d.w0),v60:'Spływanie do '+mss(d.w1),french:'Tłok o '+mss(d.w0),turkish:'Zdejmij do '+mss(d.w1),moka:'Zdejmij ok. '+mss(d.w0)}[d.k];
     let gv,gmax,gb,lbl,val,unit;
-    if(d.isE){gv=g.val; gmax=16; gb=[8,12]; lbl='Symulacja ciśnienia'; val=g.val.toFixed(1).replace('.',','); unit='bar';}
+    if(d.isE){gv=g.val; gmax=16; gb=[8,12]; lbl='Symulacja ciśnienia'; val=g.val.toFixed(1).replace('.',currentLanguage()==='en'?'.':','); unit='bar';}
     else if(d.k==='v60'){gv=g.val; gmax=g.max; gb=[g.max*.95,g.max]; lbl='Woda w dripperze'; val=String(Math.round(g.val)); unit='g';}
     else {gv=el; gmax=d.w1; gb=[d.w0,d.w1]; lbl=el<d.w0?'Do kolejnego kroku':'Okno'; val=mss(Math.max(0,(el<d.w0?d.w0:d.w1)-el)); unit='';}
     $('bLbl').textContent=lbl; $('bVal').textContent=val; $('bUnit').textContent=unit;
@@ -498,7 +499,7 @@ function renderHist(){
   if(!S.hist.length){$('hist').innerHTML='<p class="empty" style="margin:0">Brak zapisanych kaw. Oceń napar i zapisz go, a pojawi się tutaj. Pamiętam 5 ostatnich.</p>'; return;}
   $('hist').innerHTML=S.hist.map((h,i)=>{
     const m=M[h.method], pr=m.presets[h.preset]||m.presets[0];
-    let when=''; try{when=new Date(h.ts).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
+    let when=''; try{when=new Date(h.ts).toLocaleString(currentLanguage()==='en'?'en-GB':'pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
     const t=tasteOf(h.taste)||TASTES[2], b=BODIES.find(x=>x.k===h.body)||BODIES[1];
     const par=num(h.dose)+' g · 1:'+num(h.ratio)+(m.temp&&h.temp?' · '+h.temp+' °C':'')+(h.grinder==='lelit'?' · Lelit '+f1(h.ldial)+' / '+f1(h.ltime)+' s':' · K-Pro '+gtxt(h.grind))+(h.time?' · '+(h.method==='espresso'?num(h.time)+' s':mss(h.time)):'');
     const adv=(h.adv&&h.adv[0])||'';
@@ -524,7 +525,7 @@ $('hist').addEventListener('click',e=>{
   persist(); buildAll(); navigate('home');
   toast(b.dataset.next!=null?'Wczytano z poprawkami':'Wczytano ustawienia');
 });
-$('clearHist').addEventListener('click',()=>{if(!window.confirm('Usunąć zapisaną historię parzeń?')) return; S.hist=[]; persist(); renderHist();});
+$('clearHist').addEventListener('click',()=>{if(!window.confirm(translate('Usunąć zapisaną historię parzeń?'))) return; S.hist=[]; persist(); renderHist();});
 
 /* ---------- events ---------- */
 $('tabs').addEventListener('keydown',e=>{
@@ -536,7 +537,7 @@ $('tabs').addEventListener('keydown',e=>{
 });
 $('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button[data-m]'); if(!b||b.dataset.m===S.method) return;
-  if(run&&!window.confirm('Zmienić metodę i zakończyć bieżące parzenie?')) return;
+  if(run&&!window.confirm(translate('Zmienić metodę i zakończyć bieżące parzenie?'))) return;
   stopRun(); el=0; resetAlerts(); S.method=b.dataset.m; R.stars=0; R.taste=null; R.body=null; persist(); buildAll();
 });
 $('presets').addEventListener('click',e=>{
@@ -568,7 +569,7 @@ $('lCalBtn').addEventListener('click',()=>{
   if(!(w>0)){toast('Wpisz wagę zmielonej kawy'); return;}
   const rate=Math.round(w/S.lelit.time*100)/100; S.lelit.rate=rate;
   const nt=r1(clamp(S.params.espresso.dose/rate,2,20)); S.lelit.time=nt; $('lWeigh').value='';
-  persist(); lelitUpdate(); toast(rate.toFixed(2).replace('.',',')+' g/s · nowy czas '+f1(nt)+' s');
+  persist(); lelitUpdate(); toast(rate.toFixed(2).replace('.',currentLanguage()==='en'?'.':',')+' g/s · nowy czas '+f1(nt)+' s');
 });
 $('lDirSw').addEventListener('click',()=>{S.lelit.fineLower=!S.lelit.fineLower; persist(); lelitUpdate();});
 
@@ -593,7 +594,7 @@ const PATTERN={
   over:()=>{tone(440,0,.35,.3,'square'); tone(330,.4,.5,.3,'square');}
 };
 const KCOL={step:'#CC8B5E',near:'#E8BB7C',stop:'#8FD3A8',done:'#8FD3A8',over:'#F27B6C'};
-function say(t){ try{ if(!S.alerts.voice||!window.speechSynthesis) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang='pl-PL'; u.rate=1.05; speechSynthesis.speak(u);}catch(e){} }
+function say(t){ try{ if(!S.alerts.voice||!window.speechSynthesis) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(translate(t)); u.lang=currentLanguage()==='en'?'en-GB':'pl-PL'; u.rate=1.05; speechSynthesis.speak(u);}catch(e){} }
 function tint(k){
   document.body.dataset.tint=k; $('guide').dataset.tint=k; document.body.style.setProperty('--tintc',KCOL[k]);
   clearTimeout(tintT); if(k==='step'||k==='near') tintT=setTimeout(()=>{ if(document.body.dataset.tint===k) clearTint(); },k==='step'?1600:6000);
@@ -739,10 +740,10 @@ const MAINT=[
 ];
 function servUi(){
   const now=Date.now(), I=S.maint.items;
-  $('shotCount').textContent=S.maint.shots+' shotów · '+(S.maint.grams/1000).toFixed(1).replace('.',',')+' kg';
+  $('shotCount').textContent=S.maint.shots+' shotów · '+(S.maint.grams/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' kg';
   $('serv').innerHTML=MAINT.map(it=>{
     const rec=I[it.k]; let frac, info;
-    if(it.grams){const g=S.maint.grams-((rec&&rec.g)||0); frac=g/it.grams; info=(g/1000).toFixed(1).replace('.',',')+' z 4 kg';}
+    if(it.grams){const g=S.maint.grams-((rec&&rec.g)||0); frac=g/it.grams; info=(g/1000).toFixed(1).replace('.',currentLanguage()==='en'?'.':',')+' z 4 kg';}
     else{ if(!rec){frac=0; info='jeszcze nie oznaczono';} else {const dd=(now-rec.t)/864e5; frac=dd/it.days; info=Math.floor(dd)+' z '+it.days+' dni';}}
     const st=frac>=1?'due':frac>=.8?'soon':'';
     const col=st==='due'?'var(--bad)':st==='soon'?'var(--accent)':'var(--good)';
@@ -886,6 +887,7 @@ $('gBody').addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('guide').hidden) closeGuide(); });
 
 (function(){let h='';for(let i=0;i<=8;i++){const a=Math.PI*(1-i/8),c=Math.cos(a),n=Math.sin(a);h+='<line x1="'+(70+40*c).toFixed(1)+'" y1="'+(72-40*n).toFixed(1)+'" x2="'+(70+(i%2?44:46)*c).toFixed(1)+'" y2="'+(72-(i%2?44:46)*n).toFixed(1)+'"/>';}$('bTicksG').innerHTML=h;})();
+window.addEventListener('crema:preferences',()=>{buildAll();renderHist();servUi();if(!$('guide').hidden)renderGuide();});
 alertsUi();
 buildAll(); renderHist(); servUi(); requestAnimationFrame(frame);
 return { finish(){stopRun(); countShot(); renderRating(); clearTint(); update(); navigate('rating');} };
