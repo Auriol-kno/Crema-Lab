@@ -37,9 +37,15 @@ server.stderr.on('data', data => errors.push(String(data)));
     ['invalid theme', JSON.stringify({...valid,data:{...valid.data,'cremalab.theme':'unknown'}})],
     ['bad preferences', JSON.stringify({...valid,data:{...valid.data,'cremalab.preferences.v1':JSON.stringify({theme:'broken',density:'standard',language:'pl',mode:'system'})}})],
     ['invalid method', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({method:'invalid',params:{},lelit:{}})}})],
-    ['malformed coffee store', JSON.stringify({...valid,data:{...valid.data,'cremalab.coffees.v1':'{bad'}})]
+    ['malformed coffee store', JSON.stringify({...valid,data:{...valid.data,'cremalab.coffees.v1':'{bad'}})],
+    ['negative espresso dose', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),params:{...JSON.parse(valid.data['cremalab.iphone.v3']).params,espresso:{...JSON.parse(valid.data['cremalab.iphone.v3']).params.espresso,dose:-15}}})}})],
+    ['enormous grinder rate', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),lelit:{...JSON.parse(valid.data['cremalab.iphone.v3']).lelit,rate:1e100}})}})],
+    ['non-numeric grinder dial', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),lelit:{...JSON.parse(valid.data['cremalab.iphone.v3']).lelit,dial:'5.5'}})}}]
   ];
   for(const [name,payload] of cases){
+    await page.reload();
+    await page.locator('nav button').nth(3).click();
+    await page.locator('.backup summary').click();
     const currentDialogs=confirmCount;
     await page.locator('.backup input[type="file"]').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(payload)});
     await page.getByRole('status').filter({hasText:/Nie można wczytać kopii/}).waitFor({state:'visible'});
@@ -47,5 +53,5 @@ server.stderr.on('data', data => errors.push(String(data)));
     assert.deepEqual(await snapshot(),before,'invalid backup modified stored data: '+name);
   }
   assert.deepEqual(errors,[],'page runtime errors');
-  console.log('PASS: 8 invalid backup cases rejected without confirmation or storage mutation');
+  console.log('PASS: 11 invalid backup cases rejected without confirmation or storage mutation');
 })().catch(err=>{console.error(err);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
