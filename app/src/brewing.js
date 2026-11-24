@@ -13,6 +13,7 @@ const $=id=>document.getElementById(id);
 const L=584.34;
 const KEY='cremalab.iphone.v3';
 let S=JSON.parse(JSON.stringify(DEF));
+let migratedLegacy=false;
 function load(){
   try{
     let raw=localStorage.getItem(KEY), old=false;
@@ -32,6 +33,7 @@ function load(){
     if(v.alerts&&typeof v.alerts==='object') S.alerts=Object.assign({},S.alerts,v.alerts);
     if(v.maint&&typeof v.maint==='object') S.maint={shots:+v.maint.shots||0,grams:+v.maint.grams||0,items:Object.assign({},v.maint.items||{})};
     if(!old&&Array.isArray(v.hist)) S.hist=v.hist.filter(h=>h&&M[h.method]).slice(0,HIST_MAX);
+    if(old)migratedLegacy=true;
   }catch(e){}
 }
 const MILK={none:{n:'Bez mleka'},cortado:{n:'Cortado',ml:60,t:'55–60'},flat:{n:'Flat white',ml:110,t:'55–60'},capp:{n:'Cappuccino',ml:150,t:'60–65'},latte:{n:'Latte',ml:220,t:'60–65'}};
@@ -39,6 +41,8 @@ const ROAST={light:{n:'Jasne',pid:96},medium:{n:'Średnie',pid:94},dark:{n:'Ciem
 load();
 if(!S.anna){S.anna=true; S.pre=false; if(S.params.espresso.temp===93) S.params.espresso.temp=94; try{localStorage.setItem(KEY,JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(KEY)||'{}'),{anna:true,pre:false})));}catch(e){}}
 function persist(){window.dispatchEvent(new CustomEvent('crema:data'));try{localStorage.setItem(KEY,JSON.stringify({method:S.method,pre:S.pre,pidx:S.pidx,params:S.params,grinder:S.grinder,lelit:S.lelit,milk:S.milk,roast:S.roast,warm:S.warm,anna:S.anna,maint:S.maint,alerts:S.alerts,hist:S.hist}));}catch(e){}}
+// v2 migration must persist the COMPLETE merged state, not just Anna defaults.
+if(migratedLegacy)persist();
 
 let run=false, el=0, t0=0, wl=null, shotCounted=false;
 const R={stars:0,taste:null,body:null};
