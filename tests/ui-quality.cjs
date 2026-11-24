@@ -29,6 +29,16 @@ let browser;
     assert.equal(await page.locator('html').getAttribute('lang'),language);
     assert.equal(await page.locator('html').getAttribute('data-theme'),theme);
     assert.equal(await page.locator('html').getAttribute('data-density'),density);
+    const criticalType=await page.evaluate(()=>{
+      const px=selector=>{
+        const el=document.querySelector(selector);
+        return el?parseFloat(getComputedStyle(el).fontSize):null;
+      };
+      return {nav:px('.bottom-nav button'),tile:px('.tile>div'),preset:px('.presets button small')};
+    });
+    assert(criticalType.nav>=11,'navigation labels too small: '+theme+'/'+language+'/'+density);
+    if(criticalType.tile!==null) assert(criticalType.tile>=11,'coffee parameter labels too small: '+theme+'/'+language+'/'+density);
+    if(criticalType.preset!==null) assert(criticalType.preset>=11,'preset supporting labels too small: '+theme+'/'+language+'/'+density);
     const settings=await size(page.locator('#settingsBtn'));
     assert(settings.width>=44&&settings.height>=44,'settings tap target too small: '+theme+'/'+language+'/'+density);
     for(let tab=0;tab<4;tab++){
