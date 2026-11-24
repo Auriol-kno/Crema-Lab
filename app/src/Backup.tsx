@@ -11,6 +11,26 @@ function validData(raw: unknown): raw is Record<string,string|null> {
  if(!keys.every(k=>values[k]===null || typeof values[k]==='string' || optional.includes(k)&&values[k]===undefined))return false;
  if(values['cremalab.theme']!==null&&!['palarnia','cafe','bar','studio'].includes(String(values['cremalab.theme'])))return false;
  try { if(typeof values[coffeesKey]==='string'&&!validStore(JSON.parse(values[coffeesKey] as string)))return false; if(typeof values[photosKey]==='string'&&!validPhotos(JSON.parse(values[photosKey] as string)))return false; if(typeof values['cremalab.preferences.v1']==='string'){const p=JSON.parse(values['cremalab.preferences.v1']);if(!['palarnia','bar','sage','soft'].includes(p.theme)||!['standard','compact'].includes(p.density)||!['pl','en'].includes(p.language)||p.mode!==undefined&&!['system','light','dark'].includes(p.mode))return false;} for(const key of keys.slice(0,2)) {const str=values[key];if(str===null)continue;const s=JSON.parse(String(str));if(!s||!methods.includes(s.method)||!s.params||!s.lelit)return false;
+ // Imported numeric values are used directly by the legacy brewing engine.
+ // Allow legacy backups with missing optional fields, but reject unsafe supplied values.
+ const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
+ const within=(v:unknown,min:number,max:number)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
+ if(!record(s.params)||!record(s.lelit))return false;
+ const bounds:Record<string,[number,number]>={dose:[.1,1000],ratio:[.1,100],grind:[0,10],temp:[0,130]};
+ for(const method of methods){
+   const p=s.params[method];
+   if(p===undefined)continue;
+   if(!record(p))return false;
+   for(const [field,[min,max]] of Object.entries(bounds)){
+     const value=p[field];
+     if(value===undefined||(field==='temp'&&value===null))continue;
+     if(!within(value,min,max))return false;
+   }
+ }
+ for(const [field,min,max] of [['dial',1,10],['time',0,120],['rate',.001,100]] as const){
+   if(s.lelit[field]!==undefined&&!within(s.lelit[field],min,max))return false;
+ }
+ if(s.lelit.fineLower!==undefined&&typeof s.lelit.fineLower!=='boolean')return false;
  // Imported history reaches the existing engine's HTML renderer: accept only
  // plain text and bounded numeric values, never markup or invalid ratings.
  const safe=(v:unknown):boolean=>typeof v==='string'?!/[<>]/.test(v):typeof v==='number'?Number.isFinite(v):v===null||typeof v==='boolean'||(typeof v==='object'&&Object.values(v).every(safe));
