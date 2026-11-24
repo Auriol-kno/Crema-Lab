@@ -33,7 +33,7 @@ function validData(raw: unknown): raw is Record<string,string|null> {
  if(s.lelit.fineLower!==undefined&&typeof s.lelit.fineLower!=='boolean')return false;
  // Imported history reaches the existing engine's HTML renderer: accept only
  // plain text and bounded numeric values, never markup or invalid ratings.
- const safe=(v:unknown):boolean=>typeof v==='string'?!/[<>]/.test(v):typeof v==='number'?Number.isFinite(v):v===null||typeof v==='boolean'||(typeof v==='object'&&Object.values(v).every(safe));
+ const safe=(v:unknown):boolean=>typeof v==='string'?!/[<>]/.test(v):typeof v==='number'?Number.isFinite(v):v===null||typeof v==='boolean'||(typeof v==='object'&&Object.entries(v).every(([k,value])=>!['__proto__','prototype','constructor'].includes(k)&&safe(value)));
  if(!safe(s)||s.hist&&(!Array.isArray(s.hist)||s.hist.length>100||!s.hist.every((h:{method:string;stars:number;taste:string;body:string})=>h&&methods.includes(h.method)&&Number.isInteger(h.stars)&&h.stars>=1&&h.stars<=5&&['kwasne','wodniste','ok','gorzkie','cierpkie'].includes(h.taste)&&['slaba','ok','mocna'].includes(h.body))))return false;
  }}catch{return false;}return true;
 }
