@@ -37,7 +37,8 @@ server.stderr.on('data', data => errors.push(String(data)));
   const snapshot=()=>page.evaluate(()=>Object.fromEntries(['cremalab.iphone.v3','cremalab.iphone.v2','cremalab.theme','cremalab.preferences.v1','cremalab.coffees.v1','cremalab.photos.v1'].map(k=>[k,localStorage.getItem(k)])));
   const before=await snapshot();
   let confirmCount=0;
-  page.on('dialog',async dialog=>{confirmCount++;await dialog.dismiss();});
+  let acceptDialogs=false;
+  page.on('dialog',async dialog=>{confirmCount++;if(acceptDialogs)await dialog.accept();else await dialog.dismiss();});
   const modifiedEngine=(edit)=>{
     const engine=JSON.parse(valid.data['cremalab.iphone.v3']);
     edit(engine);
@@ -66,6 +67,32 @@ server.stderr.on('data', data => errors.push(String(data)));
     assert.equal(confirmCount,currentDialogs,'invalid backup unexpectedly requested confirmation: '+name);
     assert.deepEqual(await snapshot(),before,'invalid backup modified stored data: '+name);
   }
+  // Simulate a one-off storage write failure after the first imported key changed.
+  // Existing data should be restored, not left partially replaced.
+  await page.reload();
+  await page.locator('nav button').nth(3).click();
+  await page.locator('.backup summary').click();
+  const original=await snapshot();
+  const changed=modifiedEngine(engine=>{engine.params.espresso.dose=19;});
+  await page.evaluate(()=>{
+    const originalSet=Storage.prototype.setItem, originalRemove=Storage.prototype.removeItem;
+    let injected=false;
+    Storage.prototype.setItem=function(key,value){
+      if(key==='cremalab.theme'&&!injected){injected=true;throw new Error('Simulated storage failure');}
+      return originalSet.call(this,key,value);
+    };
+    Storage.prototype.removeItem=function(key){
+      if(key==='cremalab.theme'&&!injected){injected=true;throw new Error('Simulated storage failure');}
+      return originalRemove.call(this,key);
+    };
+  });
+  acceptDialogs=true;
+  await page.locator('.backup input[type="file"]').setInputFiles({
+    name:'write-failure.json',mimeType:'application/json',buffer:Buffer.from(changed)
+  });
+  await page.getByRole('status').filter({hasText:/Nie można wczytać kopii/}).waitFor({state:'visible'});
+  assert.deepEqual(await snapshot(),original,'partial import changed existing data after transient storage error');
+  acceptDialogs=false;
   assert.deepEqual(errors,[],'page runtime errors');
-  console.log('PASS: 11 invalid backup cases rejected without confirmation or storage mutation');
+  console.log('PASS: 11 invalid backup cases and transient storage write failure preserve existing data');
 })().catch(err=>{console.error(err);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
