@@ -43,8 +43,10 @@ let browser;
     const raw=JSON.parse(localStorage.getItem('cremalab.iphone.v3')||'null');
     return raw?.params?.espresso?.dose??null;
   });
-  // Some legacy values are only persisted after a user interaction.
-  if(active!==null)assert.equal(active,19,'legacy dose changed during migration');
+  assert.equal(active,19,'legacy dose was lost during automatic v2-to-v3 migration');
+  await page.reload();
+  await page.locator('#tabs button').first().waitFor({state:'attached'});
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('cremalab.iphone.v3')).params.espresso.dose),19,'legacy dose did not persist after another reload');
   assert.equal(await page.locator('#tabs button').count(),6,'app did not boot after legacy restore');
   console.log('PASS: restore of legacy v2 backup without newer optional keys');
 })().catch(err=>{console.error(err);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
