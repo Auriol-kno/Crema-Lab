@@ -55,7 +55,8 @@ server.stderr.on('data', data => errors.push(String(data)));
     ['malformed coffee store', JSON.stringify({...valid,data:{...valid.data,'cremalab.coffees.v1':'{bad'}})],
     ['negative espresso dose', modifiedEngine(engine=>{engine.params.espresso.dose=-15;})],
     ['enormous grinder rate', modifiedEngine(engine=>{engine.lelit.rate=1e100;})],
-    ['non-numeric grinder dial', modifiedEngine(engine=>{engine.lelit.dial='5.5';})]
+    ['non-numeric grinder dial', modifiedEngine(engine=>{engine.lelit.dial='5.5';})],
+    ['prototype pollution payload', modifiedEngine(engine=>{engine.lelit=JSON.parse('{"dial":5.5,"time":7.2,"rate":2.5,"__proto__":{"isAdmin":true}}');})]
   ];
   for(const [name,payload] of cases){
     await page.reload();
@@ -94,5 +95,5 @@ server.stderr.on('data', data => errors.push(String(data)));
   assert.deepEqual(await snapshot(),original,'partial import changed existing data after transient storage error');
   acceptDialogs=false;
   assert.deepEqual(errors,[],'page runtime errors');
-  console.log('PASS: 11 invalid backup cases and transient storage write failure preserve existing data');
+  console.log('PASS: 12 invalid backup cases and transient storage write failure preserve existing data');
 })().catch(err=>{console.error(err);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
