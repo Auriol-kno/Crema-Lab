@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/publish.mjs",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --experimental-strip-types tests/advice.test.mjs && node --experimental-strip-types tests/coffees.test.mjs && node tests/mobile.cjs && node tests/features.cjs && node tests/backup-negative.cjs && node tests/ui-quality.cjs"
+    "test": "node --experimental-strip-types tests/advice.test.mjs && node --experimental-strip-types tests/coffees.test.mjs && node tests/mobile.cjs && node tests/features.cjs && node tests/backup-negative.cjs && node tests/ui-quality.cjs && node tests/backup-legacy.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",
