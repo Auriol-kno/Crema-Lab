@@ -29,6 +29,11 @@ server.stderr.on('data', data => errors.push(String(data)));
   const before=await snapshot();
   let confirmCount=0;
   page.on('dialog',async dialog=>{confirmCount++;await dialog.dismiss();});
+  const modifiedEngine=(edit)=>{
+    const engine=JSON.parse(valid.data['cremalab.iphone.v3']);
+    edit(engine);
+    return JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify(engine)}});
+  };
   const cases=[
     ['invalid JSON', '{not json'],
     ['wrong application', JSON.stringify({...valid,app:'Other App'})],
@@ -36,11 +41,11 @@ server.stderr.on('data', data => errors.push(String(data)));
     ['missing data', JSON.stringify({...valid,data:null})],
     ['invalid theme', JSON.stringify({...valid,data:{...valid.data,'cremalab.theme':'unknown'}})],
     ['bad preferences', JSON.stringify({...valid,data:{...valid.data,'cremalab.preferences.v1':JSON.stringify({theme:'broken',density:'standard',language:'pl',mode:'system'})}})],
-    ['invalid method', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({method:'invalid',params:{},lelit:{}})}})],
+    ['invalid method', modifiedEngine(engine=>{engine.method='invalid';})],
     ['malformed coffee store', JSON.stringify({...valid,data:{...valid.data,'cremalab.coffees.v1':'{bad'}})],
-    ['negative espresso dose', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),params:{...JSON.parse(valid.data['cremalab.iphone.v3']).params,espresso:{...JSON.parse(valid.data['cremalab.iphone.v3']).params.espresso,dose:-15}}})}})],
-    ['enormous grinder rate', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),lelit:{...JSON.parse(valid.data['cremalab.iphone.v3']).lelit,rate:1e100}})}})],
-    ['non-numeric grinder dial', JSON.stringify({...valid,data:{...valid.data,'cremalab.iphone.v3':JSON.stringify({...JSON.parse(valid.data['cremalab.iphone.v3']),lelit:{...JSON.parse(valid.data['cremalab.iphone.v3']).lelit,dial:'5.5'}})}}]
+    ['negative espresso dose', modifiedEngine(engine=>{engine.params.espresso.dose=-15;})],
+    ['enormous grinder rate', modifiedEngine(engine=>{engine.lelit.rate=1e100;})],
+    ['non-numeric grinder dial', modifiedEngine(engine=>{engine.lelit.dial='5.5';})]
   ];
   for(const [name,payload] of cases){
     await page.reload();
