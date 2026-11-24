@@ -20,6 +20,15 @@ server.stderr.on('data', data => errors.push(String(data)));
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url);
   await page.locator('#tabs button').first().waitFor({state:'attached'});
+  // Fresh installs may not yet have an engine snapshot: seed a realistic persisted state.
+  await page.evaluate(()=>{
+    localStorage.setItem('cremalab.iphone.v3',JSON.stringify({
+      method:'espresso',params:{espresso:{dose:18,ratio:2,temp:93,grind:3.6}},
+      lelit:{dial:5.5,time:7.2,rate:2.5,fineLower:true},hist:[]
+    }));
+  });
+  await page.reload();
+  await page.locator('#tabs button').first().waitFor({state:'attached'});
   await page.locator('nav button').nth(3).click();
   await page.locator('.backup summary').click();
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('.backup-actions button').first().click()]);
