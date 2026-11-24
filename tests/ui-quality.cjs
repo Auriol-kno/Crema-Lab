@@ -51,9 +51,35 @@ let browser;
       assert(!overflow,'horizontal overflow at 320px: '+theme+'/'+language+'/'+density+'/'+tab);
     }
   }
+  // Semantic palette contrast: opaque text/primary action colors only.
+  // Translucent glass surfaces need separate screenshot/manual assessment.
+  const contrast=(fg,bg)=>{
+    const rgba=s=>{
+      const hex=s.trim().replace(/^#/,'');
+      if(/^([0-9a-f]{6})$/i.test(hex))return [0,2,4].map(i=>parseInt(hex.slice(i,i+2),16));
+      if(/^([0-9a-f]{3})$/i.test(hex))return [...hex].map(ch=>parseInt(ch+ch,16));
+      throw new Error('Unsupported palette color '+s);
+    };
+    const light=s=>rgba(s).map(v=>{const x=v/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+    const a=light(fg),b=light(bg);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+  };
+  for(const theme of ['palarnia','bar','soft'])for(const mode of ['light','dark']){
+    await page.locator('#settingsBtn').click();
+    await page.locator('#appTheme').selectOption(theme);
+    await page.locator('#appMode').selectOption(mode);
+    await page.locator('#settingsDialog button[type=submit]').click();
+    const palette=await page.evaluate(()=>{
+      const style=getComputedStyle(document.documentElement);
+      return Object.fromEntries(['--bg','--ink','--accent','--on-accent'].map(k=>[k,style.getPropertyValue(k).trim()]));
+    });
+    const body=contrast(palette['--ink'],palette['--bg']);
+    const action=contrast(palette['--on-accent'],palette['--accent']);
+    assert(body>=4.5,'body palette contrast below 4.5: '+theme+'/'+mode+' '+body.toFixed(2));
+    assert(action>=4.5,'primary action contrast below 4.5: '+theme+'/'+mode+' '+action.toFixed(2));
+  }
   await page.locator('nav button').nth(1).click();
   const main=await size(page.locator('#mainBtn'));
   assert(main.height>=44&&main.width>=44,'main brew control below target');
   assert.deepEqual(pageErrors,[],'browser runtime errors');
-  console.log('PASS: 12 theme/language/density states, 4-screen navigation at 320px, touch targets and headings');
+  console.log('PASS: 12 theme/language/density states, 6 light/dark palette checks, 4-screen navigation at 320px, touch targets and headings');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await browser?.close();server.kill('SIGTERM');});
