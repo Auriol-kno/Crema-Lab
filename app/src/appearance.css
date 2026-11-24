@@ -47,7 +47,7 @@
 :root[data-density="compact"] .app-shell .timer-link{min-height:44px;font-size:14px}
 :root[data-density="compact"] .app-shell .wide-link{min-height:44px;padding:8px 10px;font-size:13px}
 :root[data-density="compact"] .app-shell .bottom-nav{padding:3px 8px calc(3px + env(safe-area-inset-bottom))}
-:root[data-density="compact"] .app-shell .bottom-nav button{min-height:44px;font-size:10px;gap:1px}
+:root[data-density="compact"] .app-shell .bottom-nav button{min-height:44px;font-size:11px;gap:1px}
 :root[data-density="compact"] .app-shell .nav-icon{height:26px}.app-shell select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 :root[data-density="compact"] .app-shell .nav-icon svg{width:20px;height:20px}
 :root[data-density="compact"] .app-shell .screen[aria-label] .b-time b{font-size:clamp(54px,17vw,72px);letter-spacing:-3px}
