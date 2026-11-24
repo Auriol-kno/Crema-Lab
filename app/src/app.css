@@ -21,15 +21,15 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible{o
 .recipe .tabs button svg{width:25px;height:25px;margin:0}
 .recipe .tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 3px 10px var(--wash)}
 .recipe .tabs button:active,.bottom-nav button:active{transform:scale(.96)}
-.presets{margin:0;padding:4px;border-radius:12px}.presets button{font-size:12px;padding:7px 3px;min-height:44px}.presets button small{font-size:10px}
-.tiles{margin:0;padding:12px 0}.tile b{font-size:24px}.tile>div{font-size:9px}
+.presets{margin:0;padding:4px;border-radius:12px}.presets button{font-size:12px;padding:7px 3px;min-height:44px}.presets button small{font-size:11px}
+.tiles{margin:0;padding:12px 0}.tile b{font-size:24px}.tile>div{font-size:11px;line-height:1.35}
 .guide-cta{min-height:52px;padding:9px 12px;border-radius:14px}.guide-cta small{font-size:10px}.guide-cta b{font-size:14px}
 .timer-link{min-height:40px;font-size:13px}.brew-choices{gap:4px}
 .tip{display:none}.wide-link{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-size:13px;font-weight:650;text-align:left}
 .wide-link span{font-size:20px;color:var(--accent)}
 .home-note{display:flex;gap:12px;align-items:center;justify-content:center;color:var(--accent);padding:3px 10px}.home-note p{font-size:12px;color:var(--soft);margin:0;line-height:1.6}.home-note span{font-size:10px;color:var(--muted)}
 .bottom-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--surface);z-index:10}
-.bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:54px;border:0;border-radius:14px;background:none;color:var(--muted);font-size:10px;font-weight:650}
+.bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:54px;border:0;border-radius:14px;background:none;color:var(--muted);font-size:11px;font-weight:650}
 .nav-icon{position:relative;display:grid;place-items:center;width:48px;height:30px;border-radius:12px}.nav-icon svg{width:21px;height:21px}.bottom-nav button[aria-current="page"]{color:var(--accent)}.bottom-nav button[aria-current="page"] .nav-icon{background:var(--wash)}
 .nav-icon i,.live-pill>span{height:6px;width:6px;border-radius:50%;background:var(--good);position:absolute;right:6px;top:2px}
 .live-pill{display:inline-flex;align-items:center;position:relative;gap:7px;margin-top:12px;border:1px solid var(--good);border-radius:20px;padding:7px 10px;background:var(--surface);color:var(--good);font-size:11px}.live-pill>span{position:static}
@@ -45,7 +45,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible{o
 .settings{overflow-y:auto}.guide{z-index:50}.guide-in{max-width:540px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}.guide .g-nav{position:sticky;bottom:0;padding-top:10px;background:var(--bg)}.flash{z-index:100}.toast{z-index:110;bottom:calc(88px + env(safe-area-inset-bottom))}
 @keyframes enter{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(min-width:700px){body{background:var(--surface-2)}.app-shell{border-inline:1px solid var(--line)}}
-@media(max-width:360px){.app-content{padding:16px 12px}.screen-heading{margin-bottom:14px}.screen-heading h1{font-size:23px}.recipe{padding:14px}.recipe .tabs button{min-height:68px;font-size:10px}.home-note{display:none}.brew{gap:8px;padding:14px 10px}.b-time b{font-size:48px}}
+@media(max-width:360px){.app-content{padding:16px 12px}.screen-heading{margin-bottom:14px}.screen-heading h1{font-size:23px}.recipe{padding:14px}.recipe .tabs button{min-height:68px;font-size:11px}.home-note{display:none}.brew{gap:8px;padding:14px 10px}.b-time b{font-size:48px}}
 @media(prefers-reduced-motion:reduce){.screen{animation:none}*{scroll-behavior:auto}}
 /* Grid children must shrink around the native range controls on narrow phones. */
 .screen{grid-template-columns:minmax(0,1fr)}
